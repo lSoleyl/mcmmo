@@ -1,9 +1,12 @@
 package lsoleyl.mcmmo;
 
+import lsoleyl.mcmmo.events.BlockListener;
+import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.common.MinecraftForge;
 
 @Mod(modid = MCMMO.MODID, version = MCMMO.VERSION, name = MCMMO.NAME)
 public class MCMMO
@@ -15,7 +18,12 @@ public class MCMMO
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
-		// some example code
+        //TODO find out whether we run on a server and only then register the event handlers
+        MinecraftForge.EVENT_BUS.register(new BlockListener());
+
+
+
+        // some example code
         System.out.println("DIRT BLOCK >> "+Blocks.dirt.getUnlocalizedName());
     }
 }
