@@ -1,0 +1,16 @@
+[
+{
+  "modid": "mcmmo",
+  "name": "MCMMO - Forge",
+  "description": "Minecraft MMO Mod",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/lSoleyl/mcmmo",
+  "updateUrl": "",
+  "authorList": ["lSoleyl"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
