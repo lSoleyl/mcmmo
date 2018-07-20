@@ -1,5 +1,7 @@
 package lsoleyl.mcmmo;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import lsoleyl.mcmmo.events.AttackListener;
 import lsoleyl.mcmmo.events.BlockListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -18,9 +20,16 @@ public class MCMMO
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
-        //TODO find out whether we run on a server and only then register the event handlers
-        MinecraftForge.EVENT_BUS.register(new BlockListener());
+        if (FMLCommonHandler.instance().getSide().isClient()) {
+            // This is a server only mod, so we won't do any initialization on the client side
+            return;
+        }
 
+        MinecraftForge.EVENT_BUS.register(new BlockListener());
+        MinecraftForge.EVENT_BUS.register(new AttackListener());
+
+        //TODO keep track of users and store their progress in some kind of database
+        //TODO register custom mcmmo command for querying skills and scoreboard and help
 
 
         // some example code
