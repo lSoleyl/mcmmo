@@ -2,6 +2,7 @@ package lsoleyl.mcmmo.events;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.EntityRegistry;
+import lsoleyl.mcmmo.MCMMO;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
@@ -36,9 +37,7 @@ public class AttackListener {
     }
 
     public String print(EntityPlayer player) {
-
-
-        return "Player(name=" + player.getDisplayName() + ",uuid=" + player.getUniqueID() + ",currentItem=" + print(player.getCurrentEquippedItem()) + ",usingItem=" + player.isUsingItem() + ")";
+        return "Player(name=" + player.getDisplayName() + ",xp=" + MCMMO.getPlayerXp(player) + ",currentItem=" + print(player.getCurrentEquippedItem()) + ",usingItem=" + player.isUsingItem() + ")";
 
     }
 
@@ -56,6 +55,7 @@ public class AttackListener {
     @SubscribeEvent
     public void onAttackEntity(AttackEntityEvent event) {
         System.out.println(print(event.entityPlayer) + " attacked " + event.target);
+
     }
 
     @SubscribeEvent

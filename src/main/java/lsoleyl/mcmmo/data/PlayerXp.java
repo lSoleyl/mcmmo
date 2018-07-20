@@ -21,11 +21,16 @@ public class PlayerXp {
         this.playerName = player.getDisplayName();
     }
 
-    long get(Skill skill) {
+    public long get(Skill skill) {
         return skillMap.getOrDefault(skill, 0L);
     }
 
-    void set(Skill skill, long xp) {
+    public void set(Skill skill, long xp) {
         skillMap.put(skill, xp);
+    }
+
+    @Override
+    public String toString() {
+        return "XP(player=" + playerName + ",uid=" + playerUid + ",skills=" + skillMap.toString() + ")";
     }
 }
