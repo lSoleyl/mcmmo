@@ -1,9 +1,10 @@
 package lsoleyl.mcmmo;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import lsoleyl.mcmmo.data.DataStorage;
 import lsoleyl.mcmmo.events.AttackListener;
 import lsoleyl.mcmmo.events.BlockListener;
-import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -25,6 +26,12 @@ public class MCMMO
             return;
         }
 
+        // Load saved data (if any)
+        DataStorage storage = DataStorage.Initialize();
+        MinecraftForge.EVENT_BUS.register(storage);
+
+
+
         MinecraftForge.EVENT_BUS.register(new BlockListener());
         MinecraftForge.EVENT_BUS.register(new AttackListener());
 
@@ -34,5 +41,13 @@ public class MCMMO
 
         // some example code
         System.out.println("DIRT BLOCK >> "+Blocks.dirt.getUnlocalizedName());
+    }
+
+    @EventHandler
+    public void serverStarting(FMLServerStartingEvent event) {
+        if (FMLCommonHandler.instance().getSide().isServer()) {
+            //TODO create a command that we can register here
+            //event.registerServerCommand();
+        }
     }
 }
