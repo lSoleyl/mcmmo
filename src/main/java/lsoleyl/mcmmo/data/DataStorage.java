@@ -4,28 +4,24 @@ package lsoleyl.mcmmo.data;
 import com.google.gson.Gson;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class DataStorage {
     // As the current directory is always the server directory, we don't have to retrieve this path ourselves
     public static final String FILE_PATH = ".\\saves\\mcmmo\\xp.json";
 
-    //TODO maybe we should simply use the player's name... that should be fairly unique
-    private Map<UUID/*playerUid*/, PlayerXp> playerMap = new HashMap<>();
+    // We are assuming that the player name is unique... this should work
+    private Map<String/*displayName*/, PlayerXp> playerMap = new HashMap<>();
 
-
-
-    private DataStorage() {}
+    private DataStorage() { loadData(); }
 
     /** Creates a data storage object and initialized it by loading the saved data and
      *  registering for the worldSaved event
@@ -33,9 +29,6 @@ public class DataStorage {
      * @return the created data storage object
      */
     public static DataStorage Initialize() {
-        //TODO load player data from the file using GSON
-        System.out.println("File: " + getSaveFile());
-
         DataStorage storage = new DataStorage();
         MinecraftForge.EVENT_BUS.register(storage);
         return storage;
@@ -54,15 +47,30 @@ public class DataStorage {
      * @return the player's xp data, which may be manipulated
      */
     public PlayerXp get(EntityPlayer player) {
-        UUID uuid = player.getUniqueID();
-        if (!playerMap.containsKey(uuid)) {
-            playerMap.put(uuid, new PlayerXp(player));
+        String playerName = player.getDisplayName();
+        if (!playerMap.containsKey(playerName)) {
+            playerMap.put(playerName, new PlayerXp());
         }
 
-        return playerMap.get(uuid);
+        return playerMap.get(playerName);
     }
 
+    private void loadData() {
+        System.out.println("Loading MCMMO data");
+        Gson gson = new Gson();
 
+        // load the save file if it already exists
+        if (getSaveFile().exists()) {
+            try (FileReader reader = new FileReader(getSaveFile())) {
+                playerMap = gson.fromJson(reader, playerMap.getClass());
+                if (playerMap == null) {
+                    playerMap = new HashMap<>();
+                }
+            } catch (IOException ex) {
+                System.err.println("Failed to load MCMMO data. Error: " + ex);
+            }
+        }
+    }
 
 
     @SubscribeEvent
