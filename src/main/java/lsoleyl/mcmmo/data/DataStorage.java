@@ -2,6 +2,7 @@ package lsoleyl.mcmmo.data;
 
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.common.MinecraftForge;
@@ -62,7 +63,7 @@ public class DataStorage {
         // load the save file if it already exists
         if (getSaveFile().exists()) {
             try (FileReader reader = new FileReader(getSaveFile())) {
-                playerMap = gson.fromJson(reader, playerMap.getClass());
+                playerMap = gson.fromJson(reader, new TypeToken<HashMap<String, PlayerXp>>(){}.getType());
                 if (playerMap == null) {
                     playerMap = new HashMap<>();
                 }

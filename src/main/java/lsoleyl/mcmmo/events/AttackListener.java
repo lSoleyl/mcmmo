@@ -1,21 +1,15 @@
 package lsoleyl.mcmmo.events;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.registry.EntityRegistry;
 import lsoleyl.mcmmo.MCMMO;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.RegistryDefaulted;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import net.minecraftforge.oredict.OreDictionary;
-import net.minecraftforge.server.command.ForgeCommand;
-
-import java.util.ArrayList;
 
 public class AttackListener {
     //TODO assign correct priority... most probably the lowest
@@ -59,7 +53,7 @@ public class AttackListener {
     }
 
     @SubscribeEvent
-    public void itemUsed(PlayerUseItemEvent event) {
+    public void itemUsed(PlayerUseItemEvent.Finish event) { //Cannot use PlayerUseItemEvent (it's abstract)
         System.out.println(print(event.entityPlayer) + " used item " + event.item);
     }
 
