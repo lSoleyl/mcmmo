@@ -76,6 +76,6 @@ public class XPWrapper {
 
     @Override
     public String toString() {
-        return "level " + level + " (" + getCurrentLevelXp() + " / " + getNextLevelXp() + ") xp";
+        return level + " [" + getCurrentLevelXp() + "/" + getNextLevelXp() + "] xp";
     }
 }

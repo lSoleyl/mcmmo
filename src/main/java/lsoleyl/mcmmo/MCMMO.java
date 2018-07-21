@@ -2,6 +2,7 @@ package lsoleyl.mcmmo;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import lsoleyl.mcmmo.commands.MCMMOCommand;
 import lsoleyl.mcmmo.data.DataStorage;
 import lsoleyl.mcmmo.data.PlayerXp;
 import lsoleyl.mcmmo.events.AttackListener;
@@ -47,14 +48,8 @@ public class MCMMO
 
         // Load saved data (if any)
         dataStorage = DataStorage.Initialize();
-
-
-
         MinecraftForge.EVENT_BUS.register(new BlockListener());
         MinecraftForge.EVENT_BUS.register(new AttackListener());
-
-        //TODO keep track of users and store their progress in some kind of database
-        //TODO register custom mcmmo command for querying skills and scoreboard and help
 
 
         // some example code
@@ -65,8 +60,7 @@ public class MCMMO
     public void serverStarting(FMLServerStartingEvent event) {
         System.out.println("--- ServerStarting ---");
         if (FMLCommonHandler.instance().getSide().isServer()) {
-            //TODO create a command that we can register here
-            //event.registerServerCommand();
+            event.registerServerCommand(new MCMMOCommand());
         }
 
     }
