@@ -5,6 +5,9 @@ import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.data.PlayerXp;
 import lsoleyl.mcmmo.experience.XPWrapper;
 import lsoleyl.mcmmo.skills.Skill;
+import lsoleyl.mcmmo.skills.SkillRegistry;
+import lsoleyl.mcmmo.utility.ChatFormat;
+import lsoleyl.mcmmo.utility.ChatWriter;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -42,6 +45,7 @@ public class MCMMOCommand implements ICommand {
         ImmutableList<String> arguments = ImmutableList.copyOf(args);
 
         EntityPlayerMP player = (EntityPlayerMP)sender;
+        ChatWriter chat = new ChatWriter(player);
 
         if (arguments.size() == 0) {
             // only /mcmmo has been run -> treat it like help
@@ -56,7 +60,18 @@ public class MCMMOCommand implements ICommand {
 
             //TODO implement remaining commands, including skill commands
 
-            default: player.addChatMessage(new ChatComponentText("Unknown /mcmmo command: " + arguments.get(0)));
+            default:
+                for(Skill skill : Skill.values()) {
+                    if (skill.toString().toLowerCase().equals(arguments.get(0).toLowerCase())) {
+                        // this is /mcmmo <skill>
+                        skillCommand(player, skill);
+                        return;
+                    }
+                }
+
+
+
+                chat.writeMessage("Unknown /mcmmo command: " + arguments.get(0));
         }
     }
 
@@ -73,13 +88,30 @@ public class MCMMOCommand implements ICommand {
         }
     }
 
+    /** Lists info for a specific skill regarding the player
+     *  /mcmmo <skill>
+     */
+    private void skillCommand(EntityPlayerMP player, Skill skill) {
+        XPWrapper xp = new XPWrapper(MCMMO.getPlayerXp(player), skill);
+        SkillRegistry.getInstance().getSkill(skill).printDescription(new ChatWriter(player), xp.getLevel());
+    }
+
+    /** Lists the current level of each skill and the total power level
+     *  /mcmmo skills
+     */
     private void skillsCommand(EntityPlayerMP player) {
         PlayerXp playerXp = MCMMO.getPlayerXp(player);
+        ChatWriter chat = new ChatWriter(player);
 
-        //TODO format the messages better
+        int powerLevel = 0;
+
         for(Skill skill : Skill.values()) {
-            player.addChatMessage(new ChatComponentText(skill + ": " + new XPWrapper(playerXp, skill)));
+            XPWrapper skillXp = new XPWrapper(playerXp, skill);
+            chat.writeMessage(ChatFormat.formatSkill(skill) + " Skill: " + skillXp);
+            powerLevel += skillXp.getLevel();
         }
+
+        chat.writeMessage(ChatFormat.formatPowerLevel(powerLevel));
     }
 
     @Override

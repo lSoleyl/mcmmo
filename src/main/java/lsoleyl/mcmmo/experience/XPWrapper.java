@@ -2,6 +2,7 @@ package lsoleyl.mcmmo.experience;
 
 import lsoleyl.mcmmo.data.PlayerXp;
 import lsoleyl.mcmmo.skills.Skill;
+import lsoleyl.mcmmo.utility.ChatFormat;
 
 import java.util.Optional;
 
@@ -76,6 +77,6 @@ public class XPWrapper {
 
     @Override
     public String toString() {
-        return level + " [" + getCurrentLevelXp() + "/" + getNextLevelXp() + "] xp";
+        return ChatFormat.formatLevel(level) + " " + ChatFormat.formatLevelXp(getCurrentLevelXp(),getNextLevelXp());
     }
 }

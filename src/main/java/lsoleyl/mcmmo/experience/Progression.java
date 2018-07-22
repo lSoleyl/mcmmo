@@ -22,7 +22,7 @@ public class Progression {
 
     public final long base = 1000;
     public final long slope = 20; // must be dividable by 2 for the calculations to work correctly
-    private final double z; // must be a double to correctly calculate th value.
+    private final double z; // must be a double to correctly calculate the value.
     private final double z2;
     private final long halfSlope; // this is used frequently, so precalculate it
     private final double halfSlopeRoot;

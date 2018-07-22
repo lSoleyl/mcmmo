@@ -1,7 +1,7 @@
 package lsoleyl.mcmmo.skills;
 
 public enum Skill {
-    AXES, SWORDS, UNARMED;
+    ACROBATICS, ARCHERY, AXES, EXCAVATION, MINING, SWORDS, UNARMED;
 
     @Override
     public String toString() {

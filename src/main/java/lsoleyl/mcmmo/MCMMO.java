@@ -7,6 +7,7 @@ import lsoleyl.mcmmo.data.DataStorage;
 import lsoleyl.mcmmo.data.PlayerXp;
 import lsoleyl.mcmmo.events.AttackListener;
 import lsoleyl.mcmmo.events.BlockListener;
+import lsoleyl.mcmmo.skills.SkillRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -61,7 +62,10 @@ public class MCMMO
         System.out.println("--- ServerStarting ---");
         if (FMLCommonHandler.instance().getSide().isServer()) {
             event.registerServerCommand(new MCMMOCommand());
-        }
 
+            //TODO enable this check once all Skill classes are implemented
+            // Make sure, each skill is registered
+            //SkillRegistry.getInstance().validate();
+        }
     }
 }

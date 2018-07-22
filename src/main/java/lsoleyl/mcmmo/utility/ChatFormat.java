@@ -1,0 +1,50 @@
+package lsoleyl.mcmmo.utility;
+
+import joptsimple.internal.Strings;
+import lsoleyl.mcmmo.skills.Skill;
+import net.minecraft.util.EnumChatFormatting;
+
+/** This is a utility class for formatting various messages in a unified way
+ *
+ */
+public class ChatFormat {
+    public static String formatLevel(int level) {
+        return EnumChatFormatting.GREEN.toString() + level;
+    }
+
+    public static String formatPowerLevel(int powerLevel) {
+        return EnumChatFormatting.DARK_RED + "POWER_LEVEL: " + formatLevel(powerLevel);
+    }
+
+    public static String formatLevelXp(long current, long total) {
+        return EnumChatFormatting.DARK_AQUA + "XP(" + current + "/" + total + ")";
+    }
+
+    public static String formatSkill(Skill skill) {
+        return EnumChatFormatting.YELLOW + skill.toString();
+    }
+
+    /** Formats the given caption in the way mcmmo messages are formatted
+     */
+    public static String formatCaption(String caption) {
+        final int fieldWidth = 20; // Determines the number of dashes, which are printed around the caption
+
+        // determine the number of dashes to add around the text
+        int dashes = (fieldWidth - caption.length() - 4) / 2;
+        if (dashes < 1) {
+            // No matter how long the text is, always surround it with -[]...[]-
+            dashes = 1;
+        }
+
+        String dashString = Strings.repeat('-', dashes);
+
+        return EnumChatFormatting.RED + dashString + "[]" + EnumChatFormatting.GREEN + caption + EnumChatFormatting.RED + "[]" + dashString;
+    }
+
+    public static String formatXpGain(String xpSource) {
+        return EnumChatFormatting.DARK_GRAY + "XP GAIN: " + EnumChatFormatting.WHITE + xpSource;
+    }
+
+
+    private ChatFormat() {}
+}
