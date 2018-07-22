@@ -11,7 +11,7 @@ import lsoleyl.mcmmo.utility.ChatWriter;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -100,7 +100,10 @@ public class MCMMOCommand implements ICommand {
      */
     private void skillCommand(EntityPlayerMP player, Skill skill) {
         XPWrapper xp = new XPWrapper(MCMMO.getPlayerXp(player), skill);
-        SkillRegistry.getInstance().getSkill(skill).printDescription(new ChatWriter(player), xp.getLevel());
+        ChatWriter chat = new ChatWriter(player);
+        SkillRegistry.getInstance().getSkill(skill).printDescription(chat, xp.getLevel());
+        chat.writeMessage(""); // add empty line
+        chat.writeMessage(EnumChatFormatting.YELLOW + "Level " + xp);
     }
 
     /** Lists the current level of each skill and the total power level

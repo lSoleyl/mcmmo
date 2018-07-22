@@ -33,6 +33,19 @@ public class FirefightingSkill implements ISkill {
 
     @Override
     public void printHelp(ChatWriter chat) {
-        //TODO write help text for this skill
+        chat.writeMessage(ChatFormat.formatCaption("FIREFIGHTING"));
+        chat.writeMessage(ChatFormat.formatXpGain("Taking damage by fire, lava or explosions."));
+        chat.writeMessage(" The XP is proportional to the suffered damage. " +
+                "Damage caused by explosions yields " + EXPLOSION_XP_MULTIPLIER + " times more XP.");
+        chat.writeMessage(ChatFormat.formatCaption("EFFECTS"));
+        chat.writeMessage(ChatFormat.formatEffect("Fireproof", ""));
+        chat.writeMessage(" Chance to not take damage when on fire. " +
+                "This can also negate the damage taken by lava. The probability to not take damage increases by " +
+                 ChatFormat.formatPercent(fireResistanceChance.incrementPerLevel) +
+                " each level.");
+        chat.writeMessage(ChatFormat.formatEffect("Tough skin", "", explosionDamageReduction.startLevel));
+        chat.writeMessage(" Suffered explosion damage is reduced. " +
+                "Damage is reduced by " + explosionDamageReduction.startValue + " at level " + explosionDamageReduction.startLevel +
+                ". The value increases by " + explosionDamageReduction.incrementValue + " every " + explosionDamageReduction.incrementLevelStep + " levels.");
     }
 }
