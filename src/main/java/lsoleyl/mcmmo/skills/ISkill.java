@@ -13,4 +13,8 @@ public interface ISkill {
      * @param level the player's current level for that skill
      */
     void printDescription(ChatWriter chat, int level);
+
+    /** Prints a generic skill description to the given chat
+     */
+    void printHelp(ChatWriter chat);
 }

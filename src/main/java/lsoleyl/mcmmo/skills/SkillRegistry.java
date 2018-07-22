@@ -9,14 +9,20 @@ public class SkillRegistry {
     private static SkillRegistry instance = new SkillRegistry();
 
     public final MiningSkill MINING;
+
+    public final FirefightingSkill FIREFIGHTING;
+
+
     private Map<Skill, ISkill> skillMap = new HashMap<>();
 
 
     public SkillRegistry() {
         MINING = new MiningSkill();
+        FIREFIGHTING = new FirefightingSkill();
 
         // Add all available skill objects to the skill lookup map
         skillMap.put(Skill.MINING, MINING);
+        skillMap.put(Skill.FIREFIGHTING, FIREFIGHTING);
     }
 
     /** Retrieves a skill by it's associated enum value. This can be used for generic skill handling

@@ -15,6 +15,7 @@ import net.minecraft.util.ChatComponentText;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class MCMMOCommand implements ICommand {
 
@@ -61,12 +62,10 @@ public class MCMMOCommand implements ICommand {
             //TODO implement remaining commands, including skill commands
 
             default:
-                for(Skill skill : Skill.values()) {
-                    if (skill.toString().toLowerCase().equals(arguments.get(0).toLowerCase())) {
-                        // this is /mcmmo <skill>
-                        skillCommand(player, skill);
-                        return;
-                    }
+                Optional<Skill> skill = Skill.getByName(arguments.get(0));
+                if (skill.isPresent()) {
+                    skillCommand(player, skill.get());
+                    return;
                 }
 
 
@@ -77,14 +76,22 @@ public class MCMMOCommand implements ICommand {
 
     private void helpCommand(EntityPlayerMP player, ImmutableList<String> arguments) {
         //TODO implement help including the skill help
+        ChatWriter chat = new ChatWriter(player);
 
         if (arguments.size() == 0) {
             //TODO print general help, like which topics and skills are available
-            player.addChatMessage(new ChatComponentText("Generic help"));
+            chat.writeMessage("Generic help");
         } else {
             String topic = arguments.get(0);
-            player.addChatMessage(new ChatComponentText("Help for " + topic));
-            //TODO print help for that topic/skill
+
+            Optional<Skill> skill = Skill.getByName(topic);
+            if (skill.isPresent()) {
+                SkillRegistry.getInstance().getSkill(skill.get()).printHelp(chat);
+                return;
+            }
+
+            chat.writeMessage("Help for " + topic);
+            //TODO print help for that topic (which topics are there?)
         }
     }
 

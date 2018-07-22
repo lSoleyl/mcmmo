@@ -4,6 +4,8 @@ import joptsimple.internal.Strings;
 import lsoleyl.mcmmo.skills.Skill;
 import net.minecraft.util.EnumChatFormatting;
 
+import java.text.DecimalFormat;
+
 /** This is a utility class for formatting various messages in a unified way
  *
  */
@@ -43,6 +45,28 @@ public class ChatFormat {
 
     public static String formatXpGain(String xpSource) {
         return EnumChatFormatting.DARK_GRAY + "XP GAIN: " + EnumChatFormatting.WHITE + xpSource;
+    }
+
+    public static String formatEffect(String name, String description) {
+        return EnumChatFormatting.DARK_AQUA + name + ": " + EnumChatFormatting.GREEN + description;
+    }
+
+    public static String formatEffect(String name, String description, int startLevel) {
+        return EnumChatFormatting.DARK_AQUA + name +
+                    " [" + EnumChatFormatting.YELLOW + startLevel + "+" + EnumChatFormatting.DARK_AQUA + "]: " +
+                    EnumChatFormatting.GREEN + description;
+    }
+
+    public static String formatEffectValue(String name, String value) {
+        return EnumChatFormatting.RED + name + ": " + EnumChatFormatting.YELLOW + value;
+    }
+
+    public static String formatPercent(double percent) {
+        return new DecimalFormat("0.00").format(percent * 100) + "%";
+    }
+
+    public static String formatLevelUp(Skill skill, int level) {
+        return EnumChatFormatting.YELLOW + "Your " + skill + " has reached level " + EnumChatFormatting.GREEN + level;
     }
 
 

@@ -7,9 +7,13 @@ import lsoleyl.mcmmo.data.DataStorage;
 import lsoleyl.mcmmo.data.PlayerXp;
 import lsoleyl.mcmmo.events.AttackListener;
 import lsoleyl.mcmmo.events.BlockListener;
+import lsoleyl.mcmmo.skills.Skill;
 import lsoleyl.mcmmo.skills.SkillRegistry;
+import lsoleyl.mcmmo.utility.ChatFormat;
+import lsoleyl.mcmmo.utility.ChatWriter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -20,6 +24,7 @@ import net.minecraftforge.common.MinecraftForge;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 @Mod(modid = MCMMO.MODID, version = MCMMO.VERSION, name = MCMMO.NAME)
 public class MCMMO
@@ -33,6 +38,18 @@ public class MCMMO
 
     public static PlayerXp getPlayerXp(EntityPlayer player) {
         return instance.dataStorage.get(player);
+    }
+
+    /** This function should be called to handle leveling up.. This will simply print a short message to the user's chat
+     *
+     * @param player the player who may have leveled up
+     * @param skill the affected skill
+     * @param newLevel the result of XPWrapper.addXp
+     */
+    public static void playerLevelUp(EntityPlayerMP player, Skill skill, Optional<Integer> newLevel) {
+        if (newLevel.isPresent()) {
+            new ChatWriter(player).writeMessage(ChatFormat.formatLevelUp(skill, newLevel.get()));
+        }
     }
 
     
