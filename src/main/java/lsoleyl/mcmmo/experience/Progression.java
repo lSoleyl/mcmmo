@@ -40,14 +40,29 @@ public class Progression {
         return instance;
     }
 
-    /** Returns the level, which corresponds to the given total xp value
+    /** Returns the level, which corresponds to the given total xp value.
      *
-     * @param totalXp
-     * @return
+     * @param totalXp the xp to convert into the corresponding level
+     * @return the calculated level
      */
     public int getLevel(long totalXp) {
         // rounding down is exactly what we want here
-        return (int)((sqrt(totalXp + z2) - z) / halfSlopeRoot);
+        int level = (int)((sqrt(totalXp + z2) - z) / halfSlopeRoot);
+
+        // Now make sure, we don't have some kind of rounding mistake.
+        // The formula should be off by at most one level.
+        if (totalXp >= getTotalXp(level)) {
+            if (totalXp >= getTotalXp(level+1)) {
+                // the calculation returned one level below
+                return level+1;
+            } else {
+                return level;
+            }
+        } else {
+            // the calculation returned one level above
+            return level-1;
+        }
+
     }
 
     /** Returns the amount of xp needed to level up from level-1 to level
