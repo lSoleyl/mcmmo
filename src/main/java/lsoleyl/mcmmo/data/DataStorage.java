@@ -2,6 +2,7 @@ package lsoleyl.mcmmo.data;
 
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.entity.player.EntityPlayer;
@@ -58,7 +59,9 @@ public class DataStorage {
 
     private void loadData() {
         System.out.println("Loading MCMMO data");
-        Gson gson = new Gson();
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(PlayerXp.class, PlayerXp.deserializer());
+        Gson gson = builder.create();
 
         // load the save file if it already exists
         if (getSaveFile().exists()) {
