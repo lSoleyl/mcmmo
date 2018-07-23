@@ -69,6 +69,10 @@ public class ChatFormat {
         return EnumChatFormatting.YELLOW + "Your " + skill + " has reached level " + EnumChatFormatting.GREEN + level;
     }
 
+    public static String formatEffectActivated(String message) {
+        return EnumChatFormatting.GRAY + message;
+    }
+
 
     private ChatFormat() {}
 }

@@ -8,21 +8,28 @@ import java.util.Map;
 public class SkillRegistry {
     private static SkillRegistry instance = new SkillRegistry();
 
-    public final MiningSkill MINING;
+    // Gathering skills (currently not active)
+    //public final MiningSkill MINING;
 
+    // Utility skills
     public final FirefightingSkill FIREFIGHTING;
+
+
+    // Combat skills
+    public final CombatSkill COMBAT;
+
 
 
     private Map<Skill, ISkill> skillMap = new HashMap<>();
 
 
     public SkillRegistry() {
-        MINING = new MiningSkill();
         FIREFIGHTING = new FirefightingSkill();
+        COMBAT = new CombatSkill();
 
         // Add all available skill objects to the skill lookup map
-        skillMap.put(Skill.MINING, MINING);
         skillMap.put(Skill.FIREFIGHTING, FIREFIGHTING);
+        skillMap.put(Skill.COMBAT, COMBAT);
     }
 
     /** Retrieves a skill by it's associated enum value. This can be used for generic skill handling

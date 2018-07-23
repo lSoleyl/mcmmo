@@ -3,8 +3,11 @@ package lsoleyl.mcmmo.events;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.experience.XPWrapper;
+import lsoleyl.mcmmo.skills.CombatSkill;
 import lsoleyl.mcmmo.skills.FirefightingSkill;
 import lsoleyl.mcmmo.skills.Skill;
+import lsoleyl.mcmmo.utility.ChatFormat;
+import lsoleyl.mcmmo.utility.ChatWriter;
 import lsoleyl.mcmmo.utility.Rand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -21,11 +24,26 @@ import java.util.Optional;
 
 public class AttackListener {
 
-    //TODO assign correct priority... most probably the lowest
     @SubscribeEvent
     public void onAttack(LivingAttackEvent event) {
-        //TODO this may be helpful for dodge skill
-        //System.out.println(event.entity + " got damaged by " + print(event.source));
+        if (event.entityLiving instanceof EntityPlayerMP) {
+            EntityPlayerMP target = (EntityPlayerMP) event.entityLiving;
+
+            if (!event.source.isProjectile() && !event.source.isFireDamage() && !event.source.isExplosion() && !event.source.isMagicDamage()) {
+                // Seems to be regular combat damage
+                XPWrapper xp = new XPWrapper(MCMMO.getPlayerXp(target), Skill.COMBAT);
+
+
+                if (Rand.evaluate(CombatSkill.dodgeChance.getValue(xp.getLevel()))) {
+                    // Successful dodge... print short info and award xp and cancel the event
+                    //TODO This doesn't work quite right... It spams the console... Can we simply display a hint or just play a sound?
+                    // new ChatWriter(target).writeMessage(ChatFormat.formatEffectActivated("Dodge"));
+                    Optional<Integer> newLevel = xp.addXp(CombatSkill.DODGE_XP);
+                    MCMMO.playerLevelUp(target, Skill.COMBAT, newLevel);
+                    event.setCanceled(true);
+                }
+            }
+        }
     }
 
     @SubscribeEvent
@@ -63,10 +81,7 @@ public class AttackListener {
                     MCMMO.playerLevelUp(targetPlayer, Skill.FIREFIGHTING, newLevel);
                 }
             }
-        }
-
-
-        if (event.source.isProjectile() && event.source.getSourceOfDamage() instanceof EntityArrow) {
+        } else if (event.source.isProjectile() && event.source.getSourceOfDamage() instanceof EntityArrow) {
             //TODO evaluate archery skills
 
             if (event.source.getEntity() instanceof EntityPlayerMP) {
@@ -75,7 +90,7 @@ public class AttackListener {
 
 
 
-            //TODO check whether arrow can be caught -> if so add to inventory and cancel all damage
+            //TODO check whether arrow can be caught -> if so add to inventory and cancel all damage and don't continue
 
             // check whether we have to apply fire effect
             if (sourcePlayer != null) {
@@ -84,16 +99,26 @@ public class AttackListener {
                     event.entityLiving.setFire(FirefightingSkill.fireArrowFireDuration.getValue(fireFighting.getLevel()));
                 }
             }
+        } else if (!event.source.isMagicDamage()) {
+            // Regular combat damage
+
+            //TODO apply other combat skills depending on the sourcePlayer's currently equipped tool (classification needed)
+
+            // Apply damage reduction of target player's combat skill
+            if (targetPlayer != null) {
+                XPWrapper xp = new XPWrapper(MCMMO.getPlayerXp(targetPlayer), Skill.COMBAT);
+                event.ammount -= CombatSkill.damageReduction.getValue(xp.getLevel());
+
+                // now award xp for the remaining damage
+                Optional<Integer> newLevel = xp.addXp((long) (CombatSkill.XP_PER_DAMAGE * event.ammount));
+                MCMMO.playerLevelUp(targetPlayer, Skill.COMBAT, newLevel);
+            }
         }
 
 
         //TODO this event is being evaluated to determine the actual damage to apply to the armor and health of the entity
         //TODO so we need to check source and target and possibly apply any relevant combat skills
         //TODO we also have to differentiate between mobs and players
-    }
-
-    public String print(DamageSource source) {
-        return "DamageSource(Type=" + source.damageType + ",Source=" + source.getSourceOfDamage() + ")";
     }
 
     public String print(EntityPlayer player) {
@@ -111,12 +136,6 @@ public class AttackListener {
         return "Item(dispName=" + item.getDisplayName() + ",unlocalName=" + item.getUnlocalizedName() + ",names=[" + names + "])";
     }
 
-
-    @SubscribeEvent
-    public void onAttackEntity(AttackEntityEvent event) {
-        System.out.println(print(event.entityPlayer) + " attacked " + event.target);
-
-    }
 
     @SubscribeEvent
     public void itemUsed(PlayerUseItemEvent.Finish event) { //Cannot use PlayerUseItemEvent (it's abstract)

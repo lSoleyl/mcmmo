@@ -16,10 +16,6 @@ public class LinearValueProgression {
         this.maxValue = maxValue;
     }
 
-    public LinearValueProgression(int incrementLevelStep, int incrementValue) {
-        this(0, 0, incrementLevelStep, incrementValue, Integer.MAX_VALUE);
-    }
-
     public LinearValueProgression(int startLevel, int startValue, int incrementLevelStep, int incrementValue) {
         this(startLevel, startValue, incrementLevelStep, incrementValue, Integer.MAX_VALUE);
     }

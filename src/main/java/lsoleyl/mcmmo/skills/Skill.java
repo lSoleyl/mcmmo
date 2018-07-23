@@ -3,8 +3,9 @@ package lsoleyl.mcmmo.skills;
 import java.util.Optional;
 
 public enum Skill {
-    // Gathering skills
-    EXCAVATION, MINING, WOODCUTTING,
+    // Gathering skills - currently disabled... as they could debalance gregtech.
+    //                    They are hard to implement right to prevent abuse.
+    //EXCAVATION, MINING, WOODCUTTING,
     // Utility Skills
     FIREFIGHTING, CLIMBING,
     // Combat skills
