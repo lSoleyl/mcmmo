@@ -8,6 +8,7 @@ import lsoleyl.mcmmo.skills.Skill;
 import lsoleyl.mcmmo.utility.Rand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -60,6 +61,27 @@ public class AttackListener {
                     int typeFactor = (event.source.isExplosion()) ? FirefightingSkill.EXPLOSION_XP_MULTIPLIER : 1;
                     Optional<Integer> newLevel = xp.addXp((long) (event.ammount * FirefightingSkill.XP_PER_DAMAGE * typeFactor));
                     MCMMO.playerLevelUp(targetPlayer, Skill.FIREFIGHTING, newLevel);
+                }
+            }
+        }
+
+
+        if (event.source.isProjectile() && event.source.getSourceOfDamage() instanceof EntityArrow) {
+            //TODO evaluate archery skills
+
+            if (event.source.getEntity() instanceof EntityPlayerMP) {
+                sourcePlayer = (EntityPlayerMP) event.source.getEntity();
+            }
+
+
+
+            //TODO check whether arrow can be caught -> if so add to inventory and cancel all damage
+
+            // check whether we have to apply fire effect
+            if (sourcePlayer != null) {
+                XPWrapper fireFighting = new XPWrapper(MCMMO.getPlayerXp(sourcePlayer), Skill.FIREFIGHTING);
+                if (event.entityLiving != null) {
+                    event.entityLiving.setFire(FirefightingSkill.fireArrowFireDuration.getValue(fireFighting.getLevel()));
                 }
             }
         }
