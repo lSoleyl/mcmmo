@@ -78,8 +78,20 @@ public class MCMMOCommand implements ICommand {
         ChatWriter chat = new ChatWriter(player);
 
         if (arguments.size() == 0) {
-            //TODO print general help, like which topics and skills are available
-            chat.writeMessage("Generic help");
+            chat.writeMessage(ChatFormat.formatCaption("MCMMO - Forge"));
+            chat.writeMessage("This mod adds rpg elements to minecraft by adding combat and utility skills,"+
+                " which are leveled by using them. To get a list of all available skills and your current level, use following command:");
+            chat.writeMessage(ChatFormat.formatCommand("/mcmmo skills"));
+            chat.writeMessage("To see the effects of a single skill, just run:");
+            chat.writeMessage(ChatFormat.formatCommand("/mcmmo <skillname>"));
+            chat.writeMessage("To see a detailed explanation of that skill, run:");
+            chat.writeMessage(ChatFormat.formatCommand("/mcmmo help <skillname>"));
+            chat.writeMessage("To see how your skill level compares to other players, run:");
+            chat.writeMessage(ChatFormat.formatCommand("/mcmmo stats"));
+            chat.writeMessage("You can also append the skill name to only compare the levels of that skill.");
+            chat.writeMessage("To see all skill levels of a specific player, run:");
+            chat.writeMessage(ChatFormat.formatCommand("/mcmmo inspect <playername>"));
+
         } else {
             String topic = arguments.get(0);
 
@@ -88,6 +100,8 @@ public class MCMMOCommand implements ICommand {
                 SkillRegistry.getInstance().getSkill(skill.get()).printHelp(chat);
                 return;
             }
+
+            chat.writeMessage("No help page for " + topic + " found.");
         }
     }
 

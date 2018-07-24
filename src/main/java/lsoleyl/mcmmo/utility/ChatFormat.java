@@ -79,6 +79,10 @@ public class ChatFormat {
         return EnumChatFormatting.GRAY + abilityName + " is still on cooldown (" + EnumChatFormatting.YELLOW + cooldown + EnumChatFormatting.GRAY + "s)";
     }
 
+    public static String formatCommand(String command) {
+        return EnumChatFormatting.DARK_AQUA + command;
+    }
+
 
     private ChatFormat() {}
 }
