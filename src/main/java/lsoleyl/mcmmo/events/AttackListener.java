@@ -1,16 +1,29 @@
 package lsoleyl.mcmmo.events;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.experience.XPWrapper;
 import lsoleyl.mcmmo.skills.CombatSkill;
 import lsoleyl.mcmmo.skills.FirefightingSkill;
 import lsoleyl.mcmmo.skills.Skill;
+import lsoleyl.mcmmo.utility.ChatFormat;
+import lsoleyl.mcmmo.utility.ChatWriter;
 import lsoleyl.mcmmo.utility.Rand;
+import lsoleyl.mcmmo.utility.Sound;
+import net.minecraft.block.Block;
+import net.minecraft.client.audio.SoundList;
+import net.minecraft.client.audio.SoundManager;
+import net.minecraft.client.audio.SoundRegistry;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
@@ -27,17 +40,20 @@ public class AttackListener {
 
             if (!event.source.isProjectile() && !event.source.isFireDamage() && !event.source.isExplosion() && !event.source.isMagicDamage()) {
                 // Seems to be regular combat damage
-                XPWrapper xp = MCMMO.getPlayerXp(target).getSkillXp(Skill.COMBAT);
+                XPWrapper combat = MCMMO.getPlayerXp(target).getSkillXp(Skill.COMBAT);
 
-
-                if (Rand.evaluate(CombatSkill.dodgeChance.getValue(xp.getLevel()))) {
+                if (!combat.isOnCooldown() && Rand.evaluate(CombatSkill.dodgeChance.getValue(combat.getLevel()))) {
                     // Successful dodge... print short info and award xp and cancel the event
-                    //TODO we could also increase the dodge chance and add a cooldown of 3 secs or so... this would also fix this issue.
-                    //TODO This doesn't work quite right... It spams the console... Can we simply display a hint or just play a sound?
-                    // new ChatWriter(target).writeMessage(ChatFormat.formatEffectActivated("Dodge"));
-                    Optional<Integer> newLevel = xp.addXp(CombatSkill.DODGE_XP);
+                    new ChatWriter(target).writeMessage(ChatFormat.formatEffectActivated("Dodge"));
+
+
+                    Optional<Integer> newLevel = combat.addXp(CombatSkill.DODGE_XP);
                     MCMMO.playerLevelUp(target, Skill.COMBAT, newLevel);
+
+                    combat.setCooldown(CombatSkill.DODGE_COOLDOWN);
                     event.setCanceled(true);
+
+                    Sound.WOOD_CLICK.playAt(target);
                 }
             }
         }
@@ -72,11 +88,9 @@ public class AttackListener {
                 }
 
                 // Now calculate the received experience from the burn damage
-                if (event.ammount > 0) {
-                    int typeFactor = (event.source.isExplosion()) ? FirefightingSkill.EXPLOSION_XP_MULTIPLIER : 1;
-                    Optional<Integer> newLevel = xp.addXp((long) (event.ammount * FirefightingSkill.XP_PER_DAMAGE * typeFactor));
-                    MCMMO.playerLevelUp(targetPlayer, Skill.FIREFIGHTING, newLevel);
-                }
+                int typeFactor = (event.source.isExplosion()) ? FirefightingSkill.EXPLOSION_XP_MULTIPLIER : 1;
+                Optional<Integer> newLevel = xp.addXp((long) (event.ammount * FirefightingSkill.XP_PER_DAMAGE * typeFactor));
+                MCMMO.playerLevelUp(targetPlayer, Skill.FIREFIGHTING, newLevel);
             }
         } else if (event.source.isProjectile() && event.source.getSourceOfDamage() instanceof EntityArrow) {
             //TODO evaluate archery skills

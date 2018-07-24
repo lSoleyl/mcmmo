@@ -6,11 +6,12 @@ import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
 
 public class CombatSkill implements ISkill {
-    public final static LinearProbabilityProgression dodgeChance = new LinearProbabilityProgression(0.001, 0.33);
+    public final static LinearProbabilityProgression dodgeChance = new LinearProbabilityProgression(0.001);
     public final static LinearValueProgression damageReduction = new LinearValueProgression(200,2,50,1);
 
     public static final int XP_PER_DAMAGE = 100; // this value must be way smaller than the firefighter xp per burn as taking combat damage is way more common
     public static final int DODGE_XP = 500;      // how much xp awarded for a dodge
+    public static final int DODGE_COOLDOWN = 3;  // dodge cooldown in seconds
 
     @Override
     public void printDescription(ChatWriter chat, int level) {
@@ -38,7 +39,7 @@ public class CombatSkill implements ISkill {
         chat.writeMessage(ChatFormat.formatEffect("Dodge", ""));
         chat.writeMessage(" You have a chance of completely dodging a close combat attack."+
             "The dodge chance increases by " + ChatFormat.formatPercent(dodgeChance.incrementPerLevel) + " per level up to " +
-            ChatFormat.formatPercent(dodgeChance.maxValue));
+            ChatFormat.formatPercent(dodgeChance.maxValue) + ". The dodge has a cooldown of " + DODGE_COOLDOWN + "s");
 
         chat.writeMessage(ChatFormat.formatEffect("Nimble fighter", "", damageReduction.startLevel));
         chat.writeMessage(" Incoming close combat damage is reduced by a constant value before applying damage to your armor."+

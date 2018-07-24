@@ -7,10 +7,12 @@ import lsoleyl.mcmmo.data.DataStorage;
 import lsoleyl.mcmmo.data.PlayerXp;
 import lsoleyl.mcmmo.events.AttackListener;
 import lsoleyl.mcmmo.events.BlockListener;
+import lsoleyl.mcmmo.events.TickListener;
 import lsoleyl.mcmmo.skills.Skill;
 import lsoleyl.mcmmo.skills.SkillRegistry;
 import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
+import lsoleyl.mcmmo.utility.Sound;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -33,6 +35,8 @@ public class MCMMO
     public static final String VERSION = "1.0";
     public static final String NAME = "MCMMO - Forge";
 
+    public static long tickCount = 0; // The number of ticks since the server start
+
     private static MCMMO instance;
     private DataStorage dataStorage;
 
@@ -49,6 +53,7 @@ public class MCMMO
     public static void playerLevelUp(EntityPlayerMP player, Skill skill, Optional<Integer> newLevel) {
         if (newLevel.isPresent()) {
             new ChatWriter(player).writeMessage(ChatFormat.formatLevelUp(skill, newLevel.get()));
+            Sound.LEVEL_UP.playAt(player, 0.5f);
         }
     }
 
@@ -66,8 +71,12 @@ public class MCMMO
 
         // Load saved data (if any)
         dataStorage = DataStorage.Initialize();
+
+        // register event listeners
         MinecraftForge.EVENT_BUS.register(new BlockListener());
         MinecraftForge.EVENT_BUS.register(new AttackListener());
+
+        FMLCommonHandler.instance().bus().register(new TickListener());
 
 
         // some example code
