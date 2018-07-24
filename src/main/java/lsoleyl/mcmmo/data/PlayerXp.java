@@ -3,10 +3,13 @@ package lsoleyl.mcmmo.data;
 import com.google.gson.*;
 import lsoleyl.mcmmo.experience.XPWrapper;
 import lsoleyl.mcmmo.skills.Skill;
+import scala.collection.parallel.ParIterableLike;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /** This class represents the player's data, which is relevant to mcmmo. This is basically only the xp for each skill
  *  as the level can be derived from the xp and the progression curve. The use of a Map might not be the fastest way
@@ -30,6 +33,12 @@ public class PlayerXp {
 
     public long get(Skill skill) {
         return skillMap.getOrDefault(skill, 0L);
+    }
+
+    /** Returns the player's powerlevel, which is the level of all skills summed up
+     */
+    public int getPowerLevel() {
+        return Arrays.stream(Skill.values()).mapToInt(skill -> getSkillXp(skill).getLevel()).sum();
     }
 
     public void set(Skill skill, long xp) {

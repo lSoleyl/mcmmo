@@ -83,6 +83,9 @@ public class ChatFormat {
         return EnumChatFormatting.DARK_AQUA + command;
     }
 
+    public static String formatRank(int position, String player, int level) {
+        return EnumChatFormatting.YELLOW + "" + position + ". " + player + ": " + EnumChatFormatting.GREEN + level;
+    }
 
     private ChatFormat() {}
 }

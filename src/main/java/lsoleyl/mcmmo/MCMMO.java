@@ -43,7 +43,11 @@ public class MCMMO
     private DataStorage dataStorage;
 
     public static PlayerXp getPlayerXp(EntityPlayer player) {
-        return instance.dataStorage.get(player);
+        return getPlayerXp(player.getDisplayName());
+    }
+
+    public static PlayerXp getPlayerXp(String playerName) {
+        return instance.dataStorage.get(playerName);
     }
 
     public static Set<String> getPlayerNames() { return instance.dataStorage.getPlayerNames(); }

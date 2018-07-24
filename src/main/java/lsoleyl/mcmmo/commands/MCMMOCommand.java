@@ -8,14 +8,18 @@ import lsoleyl.mcmmo.skills.Skill;
 import lsoleyl.mcmmo.skills.SkillRegistry;
 import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
+import lsoleyl.mcmmo.utility.Tuple;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 
+import javax.swing.text.html.Option;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class MCMMOCommand implements ICommand {
 
@@ -58,6 +62,7 @@ public class MCMMOCommand implements ICommand {
         switch(arguments.get(0)) {
             case "help": helpCommand(player, arguments.subList(1, arguments.size())); break;
             case "skills": skillsCommand(player); break;
+            case "stats": statsCommand(chat, arguments.subList(1, arguments.size())); break;
 
             //TODO implement remaining commands, including skill commands
 
@@ -74,10 +79,48 @@ public class MCMMOCommand implements ICommand {
         }
     }
 
-    private void helpCommand(EntityPlayerMP player, ImmutableList<String> arguments) {
+    private void statsCommand(ChatWriter chat, List<String> arguments) {
+        if (arguments.isEmpty()) {
+            // rank by powerlevel
+            List<Tuple<String, Integer>> sortedList = MCMMO.getPlayerNames().stream()
+                    .map(name -> new Tuple<>(name, MCMMO.getPlayerXp(name).getPowerLevel()))
+                    .sorted((a, b) -> b.b.compareTo(a.b))
+                    .collect(Collectors.toList());
+
+
+            int position = 1;
+            chat.writeMessage(ChatFormat.formatCaption("POWERLEVEL"));
+            for (Tuple<String, Integer> entry : sortedList) {
+                chat.writeMessage(ChatFormat.formatRank(position, entry.a, entry.b));
+                ++position;
+            }
+        } else {
+            Optional<Skill> skill = Skill.getByName(arguments.get(0));
+            if (!skill.isPresent()) {
+                // Invalid skill passed
+                chat.writeMessage("No skill named " + arguments.get(0) + " found!");
+            } else {
+                // Now list all players by the skill's level in descending order
+                List<Tuple<String, Integer>> sortedList = MCMMO.getPlayerNames().stream()
+                        .map(name -> new Tuple<>(name, MCMMO.getPlayerXp(name).getSkillXp(skill.get()).getLevel()))
+                        .sorted((a, b) -> b.b.compareTo(a.b))
+                        .collect(Collectors.toList());
+
+                int position = 1;
+                chat.writeMessage(ChatFormat.formatCaption(skill.get().name()));
+                for (Tuple<String, Integer> entry : sortedList) {
+                    chat.writeMessage(ChatFormat.formatRank(position, entry.a, entry.b));
+                    ++position;
+                }
+            }
+        }
+
+    }
+
+    private void helpCommand(EntityPlayerMP player, List<String> arguments) {
         ChatWriter chat = new ChatWriter(player);
 
-        if (arguments.size() == 0) {
+        if (arguments.isEmpty()) {
             chat.writeMessage(ChatFormat.formatCaption("MCMMO - Forge"));
             chat.writeMessage("This mod adds rpg elements to minecraft by adding combat and utility skills,"+
                 " which are leveled by using them. To get a list of all available skills and your current level, use following command:");
