@@ -39,9 +39,4 @@ public class AbilityListener {
 
         }
     }
-
-    //@SubscribeEvent
-    public void onPlayerPunchEvent() {
-        //
-    }
 }

@@ -116,7 +116,8 @@ public class AttackListener {
                             if (Rand.evaluate(UnarmedSkill.ironGripChance.getValue(MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.UNARMED).getLevel()))) {
                                 // target player has prevented being disarmed
                             } else {
-                                //TODO do I need to play the drop sound myself here?
+                                // we need to manually play the drop sound
+                                Sound.POP.playAt(targetPlayer);
                                 targetPlayer.dropOneItem(true/*drop whole stack*/);
                             }
                         }
