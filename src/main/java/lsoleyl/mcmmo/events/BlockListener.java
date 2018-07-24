@@ -5,7 +5,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.world.BlockEvent;
 
 public class BlockListener {
-    @SubscribeEvent
+    //@SubscribeEvent Ignore the event for now...
     public void onBlockBreak(BlockEvent.BreakEvent event) {
         EntityPlayer player = event.getPlayer();
         System.out.println("Player " + player + " has broken the block " + event.block);

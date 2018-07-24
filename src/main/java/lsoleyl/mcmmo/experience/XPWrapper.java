@@ -19,6 +19,8 @@ public class XPWrapper {
 
     // since we have only one XPWrapper per player per skill, we can store the skill's cooldown in this object.
     private long cooldownEnd = 0;
+    private long abilityEnd = 0; // if an ability is active, then this will hold the time after which it runs out
+    private long abilityPrepareEnd = 0; // for activation abilities like berserk the time after which it automatically disables again.
     public static final int TICKS_PER_SECOND = 20;
 
 
@@ -88,13 +90,42 @@ public class XPWrapper {
         return MCMMO.tickCount < cooldownEnd;
     }
 
+    /** Returns the remaining cooldown in seconds
+     */
+    public int getRemainingCooldown() { return (int) ((cooldownEnd - MCMMO.tickCount) / TICKS_PER_SECOND); }
+
     /** Sets the skill on cooldown for the given amount of seconds.
      *
-     * @param seconds
+     * @param seconds the number of seconds to set as cooldown
      */
     public void setCooldown(int seconds) {
         cooldownEnd = MCMMO.tickCount + TICKS_PER_SECOND * seconds;
     }
+
+    /** Returns true if the skill's ability is currently active
+     */
+    public boolean isAbilityActive() { return MCMMO.tickCount < abilityEnd; }
+
+    /** Sets the skill's ability to active for a given number of seconds
+     *
+     * @param seconds the number of seconds after which the ability runs out
+     */
+    public void activateAbility(int seconds) {
+        abilityEnd = MCMMO.tickCount + TICKS_PER_SECOND * seconds;
+        abilityPrepareEnd = 0; // with ability activation the skill is no longer prepared
+    }
+
+    /** Returns true if the user has prepared the given ability
+     */
+    public boolean isAbilityPrepared() { return MCMMO.tickCount < abilityPrepareEnd; }
+
+    /** Prepare activation of ability the ability will be in prepared state for 3 seconds
+     */
+    public void prepareAbility() { abilityPrepareEnd = MCMMO.tickCount + TICKS_PER_SECOND * 3; }
+
+    /** Cancels preparing the ability
+     */
+    public void cancelPrepare() { abilityPrepareEnd = 0; }
 
 
     @Override

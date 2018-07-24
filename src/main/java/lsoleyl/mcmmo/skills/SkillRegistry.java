@@ -12,11 +12,12 @@ public class SkillRegistry {
     //public final MiningSkill MINING;
 
     // Utility skills
-    public final FirefightingSkill FIREFIGHTING;
+    public final FirefightingSkill FIREFIGHTING = new FirefightingSkill();
 
 
     // Combat skills
-    public final CombatSkill COMBAT;
+    public final CombatSkill COMBAT = new CombatSkill();
+    public final UnarmedSkill UNARMED = new UnarmedSkill();
 
 
 
@@ -24,12 +25,11 @@ public class SkillRegistry {
 
 
     public SkillRegistry() {
-        FIREFIGHTING = new FirefightingSkill();
-        COMBAT = new CombatSkill();
-
         // Add all available skill objects to the skill lookup map
         skillMap.put(Skill.FIREFIGHTING, FIREFIGHTING);
+
         skillMap.put(Skill.COMBAT, COMBAT);
+        skillMap.put(Skill.UNARMED, UNARMED);
     }
 
     /** Retrieves a skill by it's associated enum value. This can be used for generic skill handling

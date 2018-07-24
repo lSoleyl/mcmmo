@@ -5,6 +5,7 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import lsoleyl.mcmmo.commands.MCMMOCommand;
 import lsoleyl.mcmmo.data.DataStorage;
 import lsoleyl.mcmmo.data.PlayerXp;
+import lsoleyl.mcmmo.events.AbilityListener;
 import lsoleyl.mcmmo.events.AttackListener;
 import lsoleyl.mcmmo.events.BlockListener;
 import lsoleyl.mcmmo.events.TickListener;
@@ -75,6 +76,7 @@ public class MCMMO
         // register event listeners
         MinecraftForge.EVENT_BUS.register(new BlockListener());
         MinecraftForge.EVENT_BUS.register(new AttackListener());
+        MinecraftForge.EVENT_BUS.register(new AbilityListener());
 
         FMLCommonHandler.instance().bus().register(new TickListener());
 

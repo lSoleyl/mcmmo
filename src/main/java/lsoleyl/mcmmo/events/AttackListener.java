@@ -1,29 +1,17 @@
 package lsoleyl.mcmmo.events;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
 import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.experience.XPWrapper;
 import lsoleyl.mcmmo.skills.CombatSkill;
 import lsoleyl.mcmmo.skills.FirefightingSkill;
 import lsoleyl.mcmmo.skills.Skill;
-import lsoleyl.mcmmo.utility.ChatFormat;
-import lsoleyl.mcmmo.utility.ChatWriter;
-import lsoleyl.mcmmo.utility.Rand;
-import lsoleyl.mcmmo.utility.Sound;
-import net.minecraft.block.Block;
-import net.minecraft.client.audio.SoundList;
-import net.minecraft.client.audio.SoundManager;
-import net.minecraft.client.audio.SoundRegistry;
+import lsoleyl.mcmmo.skills.UnarmedSkill;
+import lsoleyl.mcmmo.utility.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
@@ -112,6 +100,54 @@ public class AttackListener {
             }
         } else if (!event.source.isMagicDamage()) {
             // Regular combat damage
+            if (sourcePlayer != null) {
+                // Apply combat damage increasing skills
+
+                //TODO detect the player's equipped item
+                if (sourcePlayer.getHeldItem() == null) {
+                    // Unarmed
+                    XPWrapper unarmed = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.UNARMED);
+                    event.ammount += UnarmedSkill.ironArmDamage.getValue(unarmed.getLevel());
+
+                    // evaluate disarm chance (only applies to players)
+                    if (targetPlayer != null) {
+                        if (Rand.evaluate(UnarmedSkill.disarmChance.getValue(unarmed.getLevel()))) {
+                            // target player has a chance to cancel this
+                            if (Rand.evaluate(UnarmedSkill.ironGripChance.getValue(MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.UNARMED).getLevel()))) {
+                                // target player has prevented being disarmed
+                            } else {
+                                //TODO do I need to play the drop sound myself here?
+                                targetPlayer.dropOneItem(true/*drop whole stack*/);
+                            }
+                        }
+                    }
+
+                    // Check whether we have to activate berserk
+                    if (!unarmed.isAbilityActive() && unarmed.isAbilityPrepared()) {
+                        unarmed.activateAbility(UnarmedSkill.berserkDuration.getValue(unarmed.getLevel()));
+                        unarmed.setCooldown(UnarmedSkill.BERSERK_COOLDOWN);
+                    }
+
+                    // Evaluate additional berserk damage
+                    if (unarmed.isAbilityActive()) {
+                        event.ammount *= UnarmedSkill.BERSERK_DAMAGE_MULTIPLIER;
+                    }
+
+
+                    // Only reward xp for damaging potentially dangerous entities
+                    if (!Entities.isPeacefulTowards(event.entity, sourcePlayer)) {
+                        // now convert the generated damage into xp (cannot exceed the entities hp)
+                        // I know, this calculation is a bit flawed, because the armor is not being applied, but it still
+                        // caps the xp per hit to a reasonable maximum.
+                        float effectiveDamage = Math.min(event.entityLiving.getHealth(), event.ammount);
+                        Optional<Integer> newLevel = unarmed.addXp((long) (UnarmedSkill.XP_PER_DAMAGE * effectiveDamage));
+                        MCMMO.playerLevelUp(sourcePlayer, Skill.UNARMED, newLevel);
+                    }
+                } else {
+                    //TODO categorize item in use and select skill depending on the item type
+                }
+            }
+
 
             //TODO apply other combat skills depending on the sourcePlayer's currently equipped tool (classification needed)
 
@@ -146,11 +182,4 @@ public class AttackListener {
         //TODO the unlocalized name seems to always contain sword for swords... etc.
         return "Item(dispName=" + item.getDisplayName() + ",unlocalName=" + item.getUnlocalizedName() + ",names=[" + names + "])";
     }
-
-
-    @SubscribeEvent
-    public void itemUsed(PlayerUseItemEvent.Finish event) { //Cannot use PlayerUseItemEvent (it's abstract)
-        System.out.println(print(event.entityPlayer) + " used item " + event.item);
-    }
-
 }

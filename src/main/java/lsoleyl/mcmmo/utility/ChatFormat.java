@@ -73,6 +73,12 @@ public class ChatFormat {
         return EnumChatFormatting.GRAY + message;
     }
 
+    public static String formatAbilityMessage(String message) { return EnumChatFormatting.DARK_GREEN + message; }
+
+    public static String formatCooldown(String abilityName, int cooldown) {
+        return EnumChatFormatting.GRAY + abilityName + " is still on cooldown (" + EnumChatFormatting.YELLOW + cooldown + EnumChatFormatting.GRAY + "s)";
+    }
+
 
     private ChatFormat() {}
 }
