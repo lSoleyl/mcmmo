@@ -44,15 +44,29 @@ public class DataStorage {
     /** Retrieves the xp state for the given player entity. If the player is not yet known to
      *  the datastorage, a new playerXp object is created for that player.
      *
-     * @param playerName the player to retrieve the data for
+     * @param player the player to retrieve the data for
      * @return the player's xp data, which may be manipulated
      */
-    public PlayerXp get(String playerName) {
+    public PlayerXp get(EntityPlayer player) {
+        String playerName = player.getDisplayName();
+
         if (!playerMap.containsKey(playerName)) {
             playerMap.put(playerName, new PlayerXp());
         }
 
         return playerMap.get(playerName);
+    }
+
+    /** Same as get with a player entity, but won't create a new entry if the playername wasn't found.
+     *
+     * @param playerName the player name for which to retrieve the xp object
+     */
+    public Optional<PlayerXp> get(String playerName) {
+        if (playerMap.containsKey(playerName)) {
+            return Optional.of(playerMap.get(playerName));
+        } else {
+            return Optional.empty();
+        }
     }
 
     /** Returns the set of known player names

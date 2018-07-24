@@ -63,6 +63,7 @@ public class MCMMOCommand implements ICommand {
             case "help": helpCommand(player, arguments.subList(1, arguments.size())); break;
             case "skills": skillsCommand(player); break;
             case "stats": statsCommand(chat, arguments.subList(1, arguments.size())); break;
+            case "inspect": inspectCommand(chat, arguments.subList(1, arguments.size())); break;
 
             //TODO implement remaining commands, including skill commands
 
@@ -79,11 +80,27 @@ public class MCMMOCommand implements ICommand {
         }
     }
 
+    private void inspectCommand(ChatWriter chat, List<String> arguments) {
+        if (arguments.isEmpty()) {
+            chat.writeMessage("Missing player parameter in /mcmmo inspect command");
+        } else {
+            String playerName = arguments.get(0);
+            Optional<PlayerXp> xp = MCMMO.getPlayerXp(playerName);
+
+            if (!xp.isPresent()) {
+                chat.writeMessage("No player " + playerName + " found in MCMMO registry");
+            } else {
+                chat.writeMessage(ChatFormat.formatCaption(playerName));
+                printSkills(chat, xp.get());
+            }
+        }
+    }
+
     private void statsCommand(ChatWriter chat, List<String> arguments) {
         if (arguments.isEmpty()) {
             // rank by powerlevel
             List<Tuple<String, Integer>> sortedList = MCMMO.getPlayerNames().stream()
-                    .map(name -> new Tuple<>(name, MCMMO.getPlayerXp(name).getPowerLevel()))
+                    .map(name -> new Tuple<>(name, MCMMO.getPlayerXp(name).get().getPowerLevel()))
                     .sorted((a, b) -> b.b.compareTo(a.b))
                     .collect(Collectors.toList());
 
@@ -102,7 +119,7 @@ public class MCMMOCommand implements ICommand {
             } else {
                 // Now list all players by the skill's level in descending order
                 List<Tuple<String, Integer>> sortedList = MCMMO.getPlayerNames().stream()
-                        .map(name -> new Tuple<>(name, MCMMO.getPlayerXp(name).getSkillXp(skill.get()).getLevel()))
+                        .map(name -> new Tuple<>(name, MCMMO.getPlayerXp(name).get().getSkillXp(skill.get()).getLevel()))
                         .sorted((a, b) -> b.b.compareTo(a.b))
                         .collect(Collectors.toList());
 
@@ -163,13 +180,14 @@ public class MCMMOCommand implements ICommand {
      *  /mcmmo skills
      */
     private void skillsCommand(EntityPlayerMP player) {
-        PlayerXp playerXp = MCMMO.getPlayerXp(player);
-        ChatWriter chat = new ChatWriter(player);
+        printSkills(new ChatWriter(player), MCMMO.getPlayerXp(player));
+    }
 
+    private void printSkills(ChatWriter chat, PlayerXp xp) {
         int powerLevel = 0;
 
         for(Skill skill : Skill.values()) {
-            XPWrapper skillXp = playerXp.getSkillXp(skill);
+            XPWrapper skillXp = xp.getSkillXp(skill);
             chat.writeMessage(ChatFormat.formatSkill(skill) + " Skill: " + skillXp);
             powerLevel += skillXp.getLevel();
         }
