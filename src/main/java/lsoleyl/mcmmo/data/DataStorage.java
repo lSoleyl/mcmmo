@@ -13,8 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DataStorage {
     // As the current directory is always the server directory, we don't have to retrieve this path ourselves
@@ -55,6 +54,12 @@ public class DataStorage {
         }
 
         return playerMap.get(playerName);
+    }
+
+    /** Returns the set of known player names
+     */
+    public Set<String> getPlayerNames() {
+        return playerMap.keySet();
     }
 
     private void loadData() {

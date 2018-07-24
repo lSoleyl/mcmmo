@@ -75,7 +75,6 @@ public class MCMMOCommand implements ICommand {
     }
 
     private void helpCommand(EntityPlayerMP player, ImmutableList<String> arguments) {
-        //TODO implement help including the skill help
         ChatWriter chat = new ChatWriter(player);
 
         if (arguments.size() == 0) {
@@ -89,9 +88,6 @@ public class MCMMOCommand implements ICommand {
                 SkillRegistry.getInstance().getSkill(skill.get()).printHelp(chat);
                 return;
             }
-
-            chat.writeMessage("Help for " + topic);
-            //TODO print help for that topic (which topics are there?)
         }
     }
 
@@ -130,13 +126,52 @@ public class MCMMOCommand implements ICommand {
     }
 
     @Override
-    public List addTabCompletionOptions(ICommandSender sender, String[] p_71516_2_) {
-        return null;
+    public List addTabCompletionOptions(ICommandSender sender, String[] parts) {
+        List<String> completions = new LinkedList<>();
+
+        if (parts.length <= 1) {
+            completions.add("help");
+            completions.add("inspect");
+            completions.add("skills");
+            completions.add("stats");
+
+            for(Skill skill : Skill.values()) {
+                completions.add(skill.name().toLowerCase());
+            }
+
+            if (parts.length == 1) {
+                completions.removeIf(completion -> !completion.startsWith(parts[0]));
+            }
+        } else if (parts.length == 2) {
+            if (parts[0].equals("help") || parts[0].equals("stats")) {
+                // can be followed by a skill name
+                for(Skill skill : Skill.values()) {
+                    String skillName = skill.name().toLowerCase();
+                    if (skillName.startsWith(parts[1])) {
+                        completions.add(skillName);
+                    }
+                }
+            } else if(parts[0].equals("inspect")) {
+                // inspect can only be followed by a player name
+                for(String name : MCMMO.getPlayerNames()) {
+                    if (name.startsWith(parts[1])) {
+                        completions.add(name);
+                    }
+                }
+            }
+        }
+
+        return completions;
     }
 
     @Override
-    public boolean isUsernameIndex(String[] p_82358_1_, int p_82358_2_) {
-        //TODO this should be true for /mcmmo inspect <player>
+    public boolean isUsernameIndex(String[] parts, int index) {
+        //TODO what is this even used for? It doesn't seem to work
+        // /mcmmmo inspect <player>
+        if(parts.length >= 1 && parts[0].equals("inspect") && index == 1) {
+            return true;
+        }
+
         return false;
     }
 

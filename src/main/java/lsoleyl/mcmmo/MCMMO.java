@@ -28,6 +28,7 @@ import net.minecraftforge.common.MinecraftForge;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.Set;
 
 @Mod(modid = MCMMO.MODID, version = MCMMO.VERSION, name = MCMMO.NAME)
 public class MCMMO
@@ -44,6 +45,8 @@ public class MCMMO
     public static PlayerXp getPlayerXp(EntityPlayer player) {
         return instance.dataStorage.get(player);
     }
+
+    public static Set<String> getPlayerNames() { return instance.dataStorage.getPlayerNames(); }
 
     /** This function should be called to handle leveling up.. This will simply print a short message to the user's chat
      *
@@ -79,10 +82,6 @@ public class MCMMO
         MinecraftForge.EVENT_BUS.register(new AbilityListener());
 
         FMLCommonHandler.instance().bus().register(new TickListener());
-
-
-        // some example code
-        System.out.println("DIRT BLOCK >> "+Blocks.dirt.getUnlocalizedName());
     }
 
     @EventHandler
