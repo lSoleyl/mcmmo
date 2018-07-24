@@ -99,7 +99,7 @@ public class MCMMOCommand implements ICommand {
      *  /mcmmo <skill>
      */
     private void skillCommand(EntityPlayerMP player, Skill skill) {
-        XPWrapper xp = new XPWrapper(MCMMO.getPlayerXp(player), skill);
+        XPWrapper xp = MCMMO.getPlayerXp(player).getSkillXp(skill);
         ChatWriter chat = new ChatWriter(player);
         SkillRegistry.getInstance().getSkill(skill).printDescription(chat, xp.getLevel());
         chat.writeMessage(""); // add empty line
@@ -116,7 +116,7 @@ public class MCMMOCommand implements ICommand {
         int powerLevel = 0;
 
         for(Skill skill : Skill.values()) {
-            XPWrapper skillXp = new XPWrapper(playerXp, skill);
+            XPWrapper skillXp = playerXp.getSkillXp(skill);
             chat.writeMessage(ChatFormat.formatSkill(skill) + " Skill: " + skillXp);
             powerLevel += skillXp.getLevel();
         }

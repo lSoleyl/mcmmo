@@ -1,6 +1,7 @@
 package lsoleyl.mcmmo.data;
 
 import com.google.gson.*;
+import lsoleyl.mcmmo.experience.XPWrapper;
 import lsoleyl.mcmmo.skills.Skill;
 
 import java.lang.reflect.Type;
@@ -14,7 +15,18 @@ import java.util.Map;
 public class PlayerXp {
     private HashMap<Skill, Long> skillMap = new HashMap<>();
 
+    // keep wrapped playerXp in a map to optimize lookup and prevent creating them all the time
+    private transient Map<Skill, XPWrapper> wrapperMap = new HashMap<>();
+
     PlayerXp() {}
+
+    public XPWrapper getSkillXp(Skill skill) {
+        if (!wrapperMap.containsKey(skill)) {
+            wrapperMap.put(skill, new XPWrapper(this, skill));
+        }
+
+        return wrapperMap.get(skill);
+    }
 
     public long get(Skill skill) {
         return skillMap.getOrDefault(skill, 0L);
