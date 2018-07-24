@@ -3,10 +3,7 @@ package lsoleyl.mcmmo.events;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.experience.XPWrapper;
-import lsoleyl.mcmmo.skills.CombatSkill;
-import lsoleyl.mcmmo.skills.FirefightingSkill;
-import lsoleyl.mcmmo.skills.Skill;
-import lsoleyl.mcmmo.skills.UnarmedSkill;
+import lsoleyl.mcmmo.skills.*;
 import lsoleyl.mcmmo.utility.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -14,7 +11,6 @@ import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.Optional;
@@ -88,8 +84,24 @@ public class AttackListener {
             }
 
 
-
             //TODO check whether arrow can be caught -> if so add to inventory and cancel all damage and don't continue
+
+            // Increase damage after we have made sure, the arrow hasn't been caught
+            if (sourcePlayer != null) {
+                XPWrapper archery = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.ARCHERY);
+                event.ammount *= 1.0 + ArcherySkill.skillShotDamage.getValue(archery.getLevel());
+
+                //TODO this same peace of code is used for unarmed, swords and axes calculation... move it into a separate method
+                // reward xp to shooting player proportional to damage but only for hostile mobs and at most the mob's health
+                if (!Entities.isPeacefulTowards(event.entity, sourcePlayer)) {
+                    // now convert the generated damage into xp (cannot exceed the entities hp)
+                    // I know, this calculation is a bit flawed, because the armor is not being applied, but it still
+                    // caps the xp per hit to a reasonable maximum.
+                    float effectiveDamage = Math.min(event.entityLiving.getHealth(), event.ammount);
+                    Optional<Integer> newLevel = archery.addXp((long) (ArcherySkill.XP_PER_DAMAGE * effectiveDamage));
+                    MCMMO.playerLevelUp(sourcePlayer, Skill.ARCHERY, newLevel);
+                }
+            }
 
             // check whether we have to apply fire effect
             if (sourcePlayer != null) {

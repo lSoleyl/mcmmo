@@ -1,5 +1,6 @@
 package lsoleyl.mcmmo.skills;
 
+import java.nio.channels.SelectionKey;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ public class SkillRegistry {
 
 
     // Combat skills
+    public final ArcherySkill ARCHERY = new ArcherySkill();
     public final CombatSkill COMBAT = new CombatSkill();
     public final UnarmedSkill UNARMED = new UnarmedSkill();
 
@@ -28,6 +30,7 @@ public class SkillRegistry {
         // Add all available skill objects to the skill lookup map
         skillMap.put(Skill.FIREFIGHTING, FIREFIGHTING);
 
+        skillMap.put(Skill.ARCHERY, ARCHERY);
         skillMap.put(Skill.COMBAT, COMBAT);
         skillMap.put(Skill.UNARMED, UNARMED);
     }
