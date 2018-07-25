@@ -8,6 +8,7 @@ import lsoleyl.mcmmo.utility.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -16,28 +17,64 @@ import net.minecraftforge.oredict.OreDictionary;
 import java.util.Optional;
 
 public class AttackListener {
-
     @SubscribeEvent
     public void onAttack(LivingAttackEvent event) {
-        if (event.entityLiving instanceof EntityPlayerMP) {
-            EntityPlayerMP target = (EntityPlayerMP) event.entityLiving;
+        EntityPlayerMP targetPlayer = null;
+        if (event.entity instanceof EntityPlayerMP) {
+            targetPlayer = (EntityPlayerMP) event.entity;
+        }
 
+        EntityPlayerMP sourcePlayer = null;
+        if (event.source.getEntity() != null && event.source.getEntity() instanceof EntityPlayerMP) {
+            sourcePlayer = (EntityPlayerMP) event.source.getEntity();
+        }
+
+        if (targetPlayer != null) {
             if (!event.source.isProjectile() && !event.source.isFireDamage() && !event.source.isExplosion() && !event.source.isMagicDamage()) {
                 // Seems to be regular combat damage
-                XPWrapper combat = MCMMO.getPlayerXp(target).getSkillXp(Skill.COMBAT);
+                XPWrapper combat = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.COMBAT);
 
                 if (!combat.isOnCooldown() && Rand.evaluate(CombatSkill.dodgeChance.getValue(combat.getLevel()))) {
                     // Successful dodge... print short info and award xp and cancel the event
-                    new ChatWriter(target).writeMessage(ChatFormat.formatEffectActivated("Dodge"));
+                    new ChatWriter(targetPlayer).writeMessage(ChatFormat.formatEffectActivated("Dodge"));
 
 
                     Optional<Integer> newLevel = combat.addXp(CombatSkill.DODGE_XP);
-                    MCMMO.playerLevelUp(target, Skill.COMBAT, newLevel);
+                    MCMMO.playerLevelUp(targetPlayer, Skill.COMBAT, newLevel);
 
                     combat.setCooldown(CombatSkill.DODGE_COOLDOWN);
                     event.setCanceled(true);
 
-                    Sound.WOOD_CLICK.playAt(target);
+                    Sound.WOOD_CLICK.playAt(targetPlayer);
+                }
+            } else if (event.source.isProjectile() && event.source.getSourceOfDamage() instanceof EntityArrow) {
+                // Evaluate catch and curve shot chance
+                XPWrapper archery = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.ARCHERY);
+                if (Rand.evaluate(ArcherySkill.catchChance.getValue(archery.getLevel()))) {
+                    // arrow has been caught... but only if the source player's curve shot doesn't trigger
+                    XPWrapper sourceArchery = null;
+                    if (sourcePlayer != null) {
+                        sourceArchery = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.ARCHERY);
+                    }
+
+                    if (sourceArchery != null && Rand.evaluate(ArcherySkill.curveShotChance.getValue(sourceArchery.getLevel()))) {
+                        // Arrow couldn't be caught... the curve shot slipped through -> continue to onHurt(), but
+                        // don't remember that this was a curve shot... It doesn't need to also deal twice the damage
+                    } else {
+                        // Arrow has been caught -> award xp, cancel event and add arrow to player's inventory
+
+                        Optional<Integer> newLevel = archery.addXp(ArcherySkill.CATCH_XP);
+                        MCMMO.playerLevelUp(targetPlayer, Skill.ARCHERY, newLevel);
+
+                        event.setCanceled(true);
+                        Sound.POP.playAt(targetPlayer);
+
+                        // We have to remove the arrow entity from the world to prevent it from dropping down after cancelling the event.
+                        EntityArrow source = (EntityArrow) event.source.getSourceOfDamage();
+                        source.worldObj.removeEntity(source);
+
+                        targetPlayer.inventory.addItemStackToInventory(new ItemStack((Item) Item.itemRegistry.getObject("minecraft:arrow")));
+                    }
                 }
             }
         }
@@ -77,26 +114,22 @@ public class AttackListener {
                 MCMMO.playerLevelUp(targetPlayer, Skill.FIREFIGHTING, newLevel);
             }
         } else if (event.source.isProjectile() && event.source.getSourceOfDamage() instanceof EntityArrow) {
-            //TODO evaluate archery skills
 
-            if (event.source.getEntity() instanceof EntityPlayerMP) {
-                sourcePlayer = (EntityPlayerMP) event.source.getEntity();
-            }
-
-
-            //TODO check whether arrow can be caught -> if so add to inventory and cancel all damage and don't continue
-
-            // Increase damage after we have made sure, the arrow hasn't been caught
+            // Increase damage after we have made sure, the arrow hasn't been caught (happens in onAttack())
             if (sourcePlayer != null) {
                 XPWrapper archery = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.ARCHERY);
                 event.ammount *= 1.0 + ArcherySkill.skillShotDamage.getValue(archery.getLevel());
 
+                // now evaluate the chance of a curve shot
+                if (Rand.evaluate(ArcherySkill.curveShotChance.getValue(archery.getLevel()))) {
+                    event.ammount *= ArcherySkill.CURVE_SHOT_DAMAGE_FACTOR;
+                }
+
                 // reward xp to shooting player proportional to damage but only for hostile mobs and at most the mob's health
                 rewardXpByTargetDamage(event, sourcePlayer, archery, ArcherySkill.XP_PER_DAMAGE);
-            }
 
-            // check whether we have to apply fire effect
-            if (sourcePlayer != null) {
+
+                // check whether we have to apply fire effect from firefighting skill
                 XPWrapper fireFighting = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.FIREFIGHTING);
                 if (event.entityLiving != null) {
                     event.entityLiving.setFire(FirefightingSkill.fireArrowFireDuration.getValue(fireFighting.getLevel()));
