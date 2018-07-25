@@ -127,6 +127,8 @@ public class XPWrapper {
      */
     public void cancelPrepare() { abilityPrepareEnd = 0; }
 
+    public Skill getSkill() { return skill; }
+
 
     @Override
     public String toString() {

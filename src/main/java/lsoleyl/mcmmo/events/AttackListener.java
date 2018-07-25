@@ -91,16 +91,8 @@ public class AttackListener {
                 XPWrapper archery = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.ARCHERY);
                 event.ammount *= 1.0 + ArcherySkill.skillShotDamage.getValue(archery.getLevel());
 
-                //TODO this same peace of code is used for unarmed, swords and axes calculation... move it into a separate method
                 // reward xp to shooting player proportional to damage but only for hostile mobs and at most the mob's health
-                if (!Entities.isPeacefulTowards(event.entity, sourcePlayer)) {
-                    // now convert the generated damage into xp (cannot exceed the entities hp)
-                    // I know, this calculation is a bit flawed, because the armor is not being applied, but it still
-                    // caps the xp per hit to a reasonable maximum.
-                    float effectiveDamage = Math.min(event.entityLiving.getHealth(), event.ammount);
-                    Optional<Integer> newLevel = archery.addXp((long) (ArcherySkill.XP_PER_DAMAGE * effectiveDamage));
-                    MCMMO.playerLevelUp(sourcePlayer, Skill.ARCHERY, newLevel);
-                }
+                rewardXpByTargetDamage(event, sourcePlayer, archery, ArcherySkill.XP_PER_DAMAGE);
             }
 
             // check whether we have to apply fire effect
@@ -146,16 +138,8 @@ public class AttackListener {
                         event.ammount *= UnarmedSkill.BERSERK_DAMAGE_MULTIPLIER;
                     }
 
-
-                    // Only reward xp for damaging potentially dangerous entities
-                    if (!Entities.isPeacefulTowards(event.entity, sourcePlayer)) {
-                        // now convert the generated damage into xp (cannot exceed the entities hp)
-                        // I know, this calculation is a bit flawed, because the armor is not being applied, but it still
-                        // caps the xp per hit to a reasonable maximum.
-                        float effectiveDamage = Math.min(event.entityLiving.getHealth(), event.ammount);
-                        Optional<Integer> newLevel = unarmed.addXp((long) (UnarmedSkill.XP_PER_DAMAGE * effectiveDamage));
-                        MCMMO.playerLevelUp(sourcePlayer, Skill.UNARMED, newLevel);
-                    }
+                    // Convert dealt damage to xp
+                    rewardXpByTargetDamage(event, sourcePlayer, unarmed, UnarmedSkill.XP_PER_DAMAGE);
                 } else {
                     //TODO categorize item in use and select skill depending on the item type
                 }
@@ -179,6 +163,18 @@ public class AttackListener {
         //TODO this event is being evaluated to determine the actual damage to apply to the armor and health of the entity
         //TODO so we need to check source and target and possibly apply any relevant combat skills
         //TODO we also have to differentiate between mobs and players
+    }
+
+    private void rewardXpByTargetDamage(LivingHurtEvent event, EntityPlayerMP sourcePlayer, XPWrapper skillXp, int xpPerDamage) {
+        // Only reward xp for damaging potentially dangerous entities
+        if (!Entities.isPeacefulTowards(event.entity, sourcePlayer)) {
+            // now convert the generated damage into xp (cannot exceed the entities hp)
+            // I know, this calculation is a bit flawed, because the armor is not being applied, but it still
+            // caps the xp per hit to a reasonable maximum.
+            float effectiveDamage = Math.min(event.entityLiving.getHealth(), event.ammount);
+            Optional<Integer> newLevel = skillXp.addXp((long) (xpPerDamage * effectiveDamage));
+            MCMMO.playerLevelUp(sourcePlayer, skillXp.getSkill(), newLevel);
+        }
     }
 
     public String print(EntityPlayer player) {
