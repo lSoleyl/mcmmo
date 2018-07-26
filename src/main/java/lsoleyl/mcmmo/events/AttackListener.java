@@ -205,7 +205,6 @@ public class AttackListener {
                     // evaluate critical strikes
                     if (Rand.evaluate(AxesSkill.criticalChance.getValue(axes.getLevel()))) {
                         event.ammount *= 2;
-                        //TODO display critical particle
                     }
 
                     // ArmorImpact
