@@ -20,6 +20,7 @@ public class SkillRegistry {
     public final ArcherySkill ARCHERY = new ArcherySkill();
     public final AxesSkill AXES = new AxesSkill();
     public final CombatSkill COMBAT = new CombatSkill();
+    public final SwordsSkill SWORDS = new SwordsSkill();
     public final UnarmedSkill UNARMED = new UnarmedSkill();
 
 
@@ -34,6 +35,7 @@ public class SkillRegistry {
         skillMap.put(Skill.ARCHERY, ARCHERY);
         skillMap.put(Skill.AXES, AXES);
         skillMap.put(Skill.COMBAT, COMBAT);
+        skillMap.put(Skill.SWORDS, SWORDS);
         skillMap.put(Skill.UNARMED, UNARMED);
     }
 

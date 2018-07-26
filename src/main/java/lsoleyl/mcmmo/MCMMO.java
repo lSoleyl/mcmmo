@@ -94,9 +94,8 @@ public class MCMMO
         if (FMLCommonHandler.instance().getSide().isServer()) {
             event.registerServerCommand(new MCMMOCommand());
 
-            //TODO enable this check once all Skill classes are implemented
             // Make sure, each skill is registered
-            //SkillRegistry.getInstance().validate();
+            SkillRegistry.getInstance().validate();
         }
     }
 }

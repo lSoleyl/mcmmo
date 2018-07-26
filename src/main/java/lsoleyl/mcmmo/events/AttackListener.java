@@ -13,6 +13,9 @@ import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.oredict.OreDictionary;
@@ -234,13 +237,18 @@ public class AttackListener {
 
                     // Set combat skill to reward after reducing damage
                     combatSkill = axes;
-                } else {
+                } else if (sourcePlayer.getHeldItem().getItem() instanceof ItemSword) {
+
+                    //TODO apply all swords effects
+
+                    // We can increase the poisons strength and duration
+                    //targetPlayer.addPotionEffect(new PotionEffect(Potion.poison.getId(), 20*5, 0, true));
+
+
+
                     //TODO swords
                 }
             }
-
-
-            //TODO apply other combat skills depending on the sourcePlayer's currently equipped tool (classification needed)
 
             // Apply damage reduction of target player's combat skill
             if (targetPlayer != null) {
