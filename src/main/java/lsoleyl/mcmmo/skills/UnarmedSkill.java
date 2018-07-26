@@ -12,7 +12,6 @@ public class UnarmedSkill implements IAbilitySkill {
     public static final LinearProbabilityProgression ironGripChance = new LinearProbabilityProgression(0.001);
     public static final LinearValueProgression berserkDuration = new LinearValueProgression(0, 5, 50, 5);
 
-    public static final int XP_PER_DAMAGE = 50;
     public static final double BERSERK_DAMAGE_MULTIPLIER = 1.5;
     public static final int BERSERK_COOLDOWN = 120;
 

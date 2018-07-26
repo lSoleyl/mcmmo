@@ -5,11 +5,13 @@ import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.experience.XPWrapper;
 import lsoleyl.mcmmo.skills.*;
 import lsoleyl.mcmmo.utility.*;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -49,6 +51,7 @@ public class AttackListener {
                     Sound.WOOD_CLICK.playAt(targetPlayer);
 
                     // Apply a mild knock back to not make the dodge useless by simply spamming attacks
+                    // This sadly only works for mobs... not for players
                     if (event.source.getEntity() instanceof EntityLivingBase) {
                         Entities.knockBack(targetPlayer, (EntityLivingBase) event.source.getEntity());
                     }
@@ -86,8 +89,15 @@ public class AttackListener {
         }
     }
 
+    private boolean processOnHurt = true;
+
     @SubscribeEvent
     public void onHurt(LivingHurtEvent event) {
+        if (!processOnHurt) {
+            // For handling generated onHurt-Events caused by AOE-Damage of skull splitter
+            return;
+        }
+
         EntityPlayerMP targetPlayer = null;
         if (event.entity instanceof EntityPlayerMP) {
             targetPlayer = (EntityPlayerMP) event.entity;
@@ -97,6 +107,11 @@ public class AttackListener {
         if (event.source.getEntity() != null && event.source.getEntity() instanceof EntityPlayerMP) {
             sourcePlayer = (EntityPlayerMP) event.source.getEntity();
         }
+
+        // This is set to the source player's skill xp wrapper if the attack is a regular close combat attack
+        // to award him for the remaining damage dealt AFTER the target player's combat skill has been evaluated and
+        // the damage reduced
+        XPWrapper combatSkill = null;
 
 
         // Apply firefighting skills
@@ -132,7 +147,7 @@ public class AttackListener {
                 }
 
                 // reward xp to shooting player proportional to damage but only for hostile mobs and at most the mob's health
-                rewardXpByTargetDamage(event, sourcePlayer, archery, ArcherySkill.XP_PER_DAMAGE);
+                rewardXpByTargetDamage(event, sourcePlayer, archery);
 
 
                 // check whether we have to apply fire effect from firefighting skill
@@ -177,10 +192,51 @@ public class AttackListener {
                         event.ammount *= UnarmedSkill.BERSERK_DAMAGE_MULTIPLIER;
                     }
 
-                    // Convert dealt damage to xp
-                    rewardXpByTargetDamage(event, sourcePlayer, unarmed, UnarmedSkill.XP_PER_DAMAGE);
+                    // Set combat skill to reward after reducing damage
+                    combatSkill = unarmed;
+                } else if (sourcePlayer.getHeldItem().getItem() instanceof ItemAxe){
+                    // let's hope, all modded axes are derived form ItemAxe
+
+                    XPWrapper axes = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.AXES);
+
+                    // apply additional damage from axe master
+                    event.ammount += AxesSkill.axeMasterDamage.getValue(axes.getLevel());
+
+                    // evaluate critical strikes
+                    if (Rand.evaluate(AxesSkill.criticalChance.getValue(axes.getLevel()))) {
+                        event.ammount *= 2;
+                        //TODO display critical particle
+                    }
+
+                    // ArmorImpact
+                    if (targetPlayer != null && AxesSkill.armorImpactDamage.getValue(axes.getLevel()) > 0) {
+                        // We have to multiply the damage by 4 as the damage gets divided by 4 before being applied as damage to the armor.
+                        targetPlayer.inventory.damageArmor(AxesSkill.armorImpactDamage.getValue(axes.getLevel())*4);
+                    }
+
+                    // Check whether we have to activate skull splitter
+                    if (!axes.isAbilityActive() && axes.isAbilityPrepared()) {
+                        axes.activateAbility(AxesSkill.skullSplitterDuration.getValue(axes.getLevel()));
+                        axes.setCooldown(AxesSkill.SKULL_SPLITTER_COOLDOWN);
+                    }
+
+                    // evaluate skull splitter
+                    if (axes.isAbilityActive()) {
+                        // disable hurt processing as it would lead to an endless recursion
+                        processOnHurt = false;
+                        for (Object obj : Entities.getEntitiesAround(event.entity, 1)) {
+                            if (obj instanceof EntityLiving && obj != sourcePlayer) {
+                                // Reuse same event source as it is still valid for the AOE damage, just adapt the damage itself.
+                                ((EntityLiving) obj).attackEntityFrom(event.source, event.ammount / 2);
+                            }
+                        }
+                        processOnHurt = true;
+                    }
+
+                    // Set combat skill to reward after reducing damage
+                    combatSkill = axes;
                 } else {
-                    //TODO categorize item in use and select skill depending on the item type
+                    //TODO swords
                 }
             }
 
@@ -196,22 +252,26 @@ public class AttackListener {
                 Optional<Integer> newLevel = xp.addXp((long) (CombatSkill.XP_PER_DAMAGE * event.ammount));
                 MCMMO.playerLevelUp(targetPlayer, Skill.COMBAT, newLevel);
             }
+
+            // After we have reduced the damage by the target player's combat skill, we can convert the remaining dealt damage
+            // to xp... That way farming xp by attacking a player with high combat skill is not possible.
+            if (combatSkill != null) {
+                rewardXpByTargetDamage(event, sourcePlayer, combatSkill);
+            }
         }
-
-
-        //TODO this event is being evaluated to determine the actual damage to apply to the armor and health of the entity
-        //TODO so we need to check source and target and possibly apply any relevant combat skills
-        //TODO we also have to differentiate between mobs and players
     }
 
-    private void rewardXpByTargetDamage(LivingHurtEvent event, EntityPlayerMP sourcePlayer, XPWrapper skillXp, int xpPerDamage) {
+    private void rewardXpByTargetDamage(LivingHurtEvent event, EntityPlayerMP sourcePlayer, XPWrapper skillXp) {
+        // Use a constant Damage -> XP conversion for all combat skills
+        final int XP_PER_DAMAGE = 50;
+
         // Only reward xp for damaging potentially dangerous entities
         if (!Entities.isPeacefulTowards(event.entity, sourcePlayer)) {
             // now convert the generated damage into xp (cannot exceed the entities hp)
             // I know, this calculation is a bit flawed, because the armor is not being applied, but it still
             // caps the xp per hit to a reasonable maximum.
             float effectiveDamage = Math.min(event.entityLiving.getHealth(), event.ammount);
-            Optional<Integer> newLevel = skillXp.addXp((long) (xpPerDamage * effectiveDamage));
+            Optional<Integer> newLevel = skillXp.addXp((long) (XP_PER_DAMAGE * effectiveDamage));
             MCMMO.playerLevelUp(sourcePlayer, skillXp.getSkill(), newLevel);
         }
     }

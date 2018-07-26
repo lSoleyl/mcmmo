@@ -9,6 +9,7 @@ import lsoleyl.mcmmo.skills.SkillRegistry;
 import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemAxe;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 /** Listens on right click events to prepare abilities and register them to the cooldown manager
@@ -29,14 +30,27 @@ public class AbilityListener {
                     if (unarmed.isOnCooldown()) {
                         new ChatWriter(player).writeMessage(ChatFormat.formatCooldown("Berserk", unarmed.getRemainingCooldown()));
                     } else {
-                        // prepare ability (register will set the abilility to prepared)
+                        // prepare ability (register will set the ability to prepared)
                         CooldownManager.getInstance().register(player, unarmed, SkillRegistry.getInstance().UNARMED);
                     }
                 }
             }
-        } else {
-            // The player holds an item in his hand... check that item type
-
+        } else if (event.entityPlayer.getHeldItem().getItem() instanceof ItemAxe) {
+            // Skull splitter
+            if (event.entityPlayer.isSneaking()) {
+                EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;
+                XPWrapper axes = MCMMO.getPlayerXp(player).getSkillXp(Skill.AXES);
+                if (axes.isAbilityPrepared()) {
+                    axes.cancelPrepare();  // lower axe
+                } else if (!axes.isAbilityActive()) {
+                    if (axes.isOnCooldown()) {
+                        new ChatWriter(player).writeMessage(ChatFormat.formatCooldown("Skull splitter", axes.getRemainingCooldown()));
+                    } else {
+                        // prepare ability (register will set the ability to prepared)
+                        CooldownManager.getInstance().register(player, axes, SkillRegistry.getInstance().AXES);
+                    }
+                }
+            }
         }
     }
 }

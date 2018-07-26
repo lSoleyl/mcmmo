@@ -9,7 +9,6 @@ public class ArcherySkill implements ISkill {
     public static final LinearProbabilityProgression catchChance = new LinearProbabilityProgression(0.001);
     public static final LinearProbabilityProgression curveShotChance = new LinearProbabilityProgression(900, 0, 0.002, 0.2);
 
-    public static final int XP_PER_DAMAGE = 50; // same value as unarmed should be ok
     public static final int CATCH_XP = 500; // xp per caught arrow
     public static final double CURVE_SHOT_DAMAGE_FACTOR = 2.0;
 
