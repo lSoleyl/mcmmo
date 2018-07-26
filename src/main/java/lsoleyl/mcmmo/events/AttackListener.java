@@ -5,6 +5,7 @@ import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.experience.XPWrapper;
 import lsoleyl.mcmmo.skills.*;
 import lsoleyl.mcmmo.utility.*;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
@@ -46,6 +47,11 @@ public class AttackListener {
                     event.setCanceled(true);
 
                     Sound.WOOD_CLICK.playAt(targetPlayer);
+
+                    // Apply a mild knock back to not make the dodge useless by simply spamming attacks
+                    if (event.source.getEntity() instanceof EntityLivingBase) {
+                        Entities.knockBack(targetPlayer, (EntityLivingBase) event.source.getEntity());
+                    }
                 }
             } else if (event.source.isProjectile() && event.source.getSourceOfDamage() instanceof EntityArrow) {
                 // Evaluate catch and curve shot chance

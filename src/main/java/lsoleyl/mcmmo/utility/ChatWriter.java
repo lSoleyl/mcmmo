@@ -15,4 +15,8 @@ public class ChatWriter {
     public void writeMessage(String message) {
         player.addChatMessage(new ChatComponentText(message));
     }
+
+    public static void writeMessage(EntityPlayerMP player, String message) {
+        player.addChatMessage(new ChatComponentText(message));
+    }
 }

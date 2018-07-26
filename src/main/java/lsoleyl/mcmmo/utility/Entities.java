@@ -1,6 +1,7 @@
 package lsoleyl.mcmmo.utility;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.passive.IAnimals;
@@ -26,5 +27,12 @@ public class Entities {
         }
 
         return false; // all unknown entities are harmful
+    }
+
+    public static void knockBack(Entity source, EntityLivingBase target) {
+        double dx = source.posX - target.posX;
+        double dz = source.posZ - target.posZ;
+
+        target.knockBack(source/*unused*/, 0/*unused*/, dx, dz);
     }
 }

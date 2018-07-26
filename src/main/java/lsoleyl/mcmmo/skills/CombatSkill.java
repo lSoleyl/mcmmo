@@ -37,7 +37,7 @@ public class CombatSkill implements ISkill {
 
         chat.writeMessage(ChatFormat.formatCaption("EFFECTS"));
         chat.writeMessage(ChatFormat.formatEffect("Dodge", ""));
-        chat.writeMessage(" You have a chance of completely dodging a close combat attack."+
+        chat.writeMessage(" You have a chance of completely dodging a close combat attack and knocking back the attacker. "+
             "The dodge chance increases by " + ChatFormat.formatPercent(dodgeChance.incrementPerLevel) + " per level up to " +
             ChatFormat.formatPercent(dodgeChance.maxValue) + ". The dodge has a cooldown of " + DODGE_COOLDOWN + "s");
 
