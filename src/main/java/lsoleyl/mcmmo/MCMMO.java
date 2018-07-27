@@ -1,6 +1,9 @@
 package lsoleyl.mcmmo;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.Mod.EventHandler;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import lsoleyl.mcmmo.commands.MCMMOCommand;
 import lsoleyl.mcmmo.data.DataStorage;
@@ -13,21 +16,12 @@ import lsoleyl.mcmmo.skills.Skill;
 import lsoleyl.mcmmo.skills.SkillRegistry;
 import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
+import lsoleyl.mcmmo.utility.Optional;
 import lsoleyl.mcmmo.utility.Sound;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.Mod.EventHandler;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.classloading.FMLForgePlugin;
 import net.minecraftforge.common.MinecraftForge;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.Set;
 
 @Mod(modid = MCMMO.MODID, version = MCMMO.VERSION, name = MCMMO.NAME)

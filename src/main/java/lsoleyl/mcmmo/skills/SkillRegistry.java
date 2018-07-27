@@ -25,7 +25,7 @@ public class SkillRegistry {
 
 
 
-    private Map<Skill, ISkill> skillMap = new HashMap<>();
+    private Map<Skill, ISkill> skillMap = new HashMap<Skill, ISkill>();
 
 
     public SkillRegistry() {

@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import lsoleyl.mcmmo.utility.Optional;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
@@ -13,14 +14,16 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class DataStorage {
     // As the current directory is always the server directory, we don't have to retrieve this path ourselves
     public static final String FILE_PATH = ".\\saves\\mcmmo\\xp.json";
 
     // We are assuming that the player name is unique... this should work
-    private Map<String/*displayName*/, PlayerXp> playerMap = new HashMap<>();
+    private Map<String/*displayName*/, PlayerXp> playerMap = new HashMap<String, PlayerXp>();
 
     private DataStorage() { loadData(); }
 
@@ -83,13 +86,21 @@ public class DataStorage {
 
         // load the save file if it already exists
         if (getSaveFile().exists()) {
-            try (FileReader reader = new FileReader(getSaveFile())) {
+            FileReader reader = null;
+            try {
+               reader = new FileReader(getSaveFile());
                 playerMap = gson.fromJson(reader, new TypeToken<HashMap<String, PlayerXp>>(){}.getType());
                 if (playerMap == null) {
-                    playerMap = new HashMap<>();
+                    playerMap = new HashMap<String, PlayerXp>();
                 }
             } catch (IOException ex) {
                 System.err.println("Failed to load MCMMO data. Error: " + ex);
+            } finally {
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch(IOException ex) {}
             }
         }
     }
@@ -102,10 +113,20 @@ public class DataStorage {
         // Save the player data using GSON
         System.out.println("Saving MCMMO data");
         Gson gson = new Gson();
-        try (FileWriter writer = new FileWriter(getSaveFile())) {
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(getSaveFile());
             writer.write(gson.toJson(playerMap));
         } catch (IOException ex) {
             System.err.println("Failed to save MCMMO data. Error: " + ex);
+        } finally {
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+            } catch (IOException ex) {
+                System.err.println("Failed to save MCMMO data. Error: " + ex);
+            }
         }
     }
 

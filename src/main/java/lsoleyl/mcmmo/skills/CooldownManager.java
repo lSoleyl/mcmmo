@@ -11,7 +11,7 @@ import java.util.ListIterator;
  */
 public class CooldownManager {
     private static final CooldownManager instance = new CooldownManager();
-    private List<CooldownEntry> cooldownEntries = new LinkedList<>();
+    private List<CooldownEntry> cooldownEntries = new LinkedList<CooldownEntry>();
 
     public static CooldownManager getInstance() {
         return instance;

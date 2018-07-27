@@ -4,8 +4,7 @@ import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.data.PlayerXp;
 import lsoleyl.mcmmo.skills.Skill;
 import lsoleyl.mcmmo.utility.ChatFormat;
-
-import java.util.Optional;
+import lsoleyl.mcmmo.utility.Optional;
 
 /** This class wraps the PlayerXP object for a specific skill an exposes better interface for reading and modifying
  *  the value. For better performance each object keeps the current xp value and level cached in a local field so

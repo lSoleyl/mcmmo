@@ -9,15 +9,14 @@ import lsoleyl.mcmmo.skills.SkillRegistry;
 import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
 import lsoleyl.mcmmo.utility.Tuple;
+import lsoleyl.mcmmo.utility.Optional;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
+
 
 public class MCMMOCommand implements ICommand {
 
@@ -57,24 +56,24 @@ public class MCMMOCommand implements ICommand {
         }
 
 
-        switch(arguments.get(0)) {
-            case "help": helpCommand(player, arguments.subList(1, arguments.size())); break;
-            case "skills": skillsCommand(player); break;
-            case "stats": statsCommand(chat, arguments.subList(1, arguments.size())); break;
-            case "inspect": inspectCommand(chat, arguments.subList(1, arguments.size())); break;
+        String command = arguments.get(0);
+        ImmutableList<String> tail = arguments.subList(1, arguments.size());
+        if (command.equals("help")) {
+            helpCommand(player, tail);
+        } else if (command.equals("skills")) {
+            skillsCommand(player);
+        } else if (command.equals("stats")) {
+            statsCommand(chat, tail);
+        } else if (command.equals("inspect")) {
+            inspectCommand(chat, tail);
+        } else {
+            Optional<Skill> skill = Skill.getByName(arguments.get(0));
+            if (skill.isPresent()) {
+                skillCommand(player, skill.get());
+                return;
+            }
 
-            //TODO implement remaining commands, including skill commands
-
-            default:
-                Optional<Skill> skill = Skill.getByName(arguments.get(0));
-                if (skill.isPresent()) {
-                    skillCommand(player, skill.get());
-                    return;
-                }
-
-
-
-                chat.writeMessage("Unknown /mcmmo command: " + arguments.get(0));
+            chat.writeMessage("Unknown /mcmmo command: " + arguments.get(0));
         }
     }
 
@@ -94,14 +93,32 @@ public class MCMMOCommand implements ICommand {
         }
     }
 
+
+    private List<Tuple<String, Integer>> getSortedPlayerLevelList(ISkillLevelMapper mapper) {
+        ArrayList<Tuple<String, Integer>> list = new ArrayList<Tuple<String, Integer>>();
+        for (String name : MCMMO.getPlayerNames()) {
+            list.add(new Tuple<String,Integer>(name, mapper.getLevel(MCMMO.getPlayerXp(name).get())));
+        }
+        Collections.sort(list, new Comparator<Tuple<String, Integer>>() {
+            @Override
+            public int compare(Tuple<String, Integer> o1, Tuple<String, Integer> o2) {
+                return o2.b.compareTo(o1.b);
+            }
+        });
+
+        return list;
+    }
+
+
     private void statsCommand(ChatWriter chat, List<String> arguments) {
         if (arguments.isEmpty()) {
             // rank by powerlevel
-            List<Tuple<String, Integer>> sortedList = MCMMO.getPlayerNames().stream()
-                    .map(name -> new Tuple<>(name, MCMMO.getPlayerXp(name).get().getPowerLevel()))
-                    .sorted((a, b) -> b.b.compareTo(a.b))
-                    .collect(Collectors.toList());
-
+            List<Tuple<String, Integer>> sortedList = getSortedPlayerLevelList(new ISkillLevelMapper() {
+                @Override
+                public int getLevel(PlayerXp xp) {
+                    return xp.getPowerLevel();
+                }
+            });
 
             int position = 1;
             chat.writeMessage(ChatFormat.formatCaption("POWERLEVEL"));
@@ -110,16 +127,18 @@ public class MCMMOCommand implements ICommand {
                 ++position;
             }
         } else {
-            Optional<Skill> skill = Skill.getByName(arguments.get(0));
+            final Optional<Skill> skill = Skill.getByName(arguments.get(0));
             if (!skill.isPresent()) {
                 // Invalid skill passed
                 chat.writeMessage("No skill named " + arguments.get(0) + " found!");
             } else {
                 // Now list all players by the skill's level in descending order
-                List<Tuple<String, Integer>> sortedList = MCMMO.getPlayerNames().stream()
-                        .map(name -> new Tuple<>(name, MCMMO.getPlayerXp(name).get().getSkillXp(skill.get()).getLevel()))
-                        .sorted((a, b) -> b.b.compareTo(a.b))
-                        .collect(Collectors.toList());
+                List<Tuple<String, Integer>> sortedList = getSortedPlayerLevelList(new ISkillLevelMapper() {
+                    @Override
+                    public int getLevel(PlayerXp xp) {
+                        return xp.getSkillXp(skill.get()).getLevel();
+                    }
+                });
 
                 int position = 1;
                 chat.writeMessage(ChatFormat.formatCaption(skill.get().name()));
@@ -200,7 +219,7 @@ public class MCMMOCommand implements ICommand {
 
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] parts) {
-        List<String> completions = new LinkedList<>();
+        List<String> completions = new LinkedList<String>();
 
         if (parts.length <= 1) {
             completions.add("help");
@@ -213,7 +232,13 @@ public class MCMMOCommand implements ICommand {
             }
 
             if (parts.length == 1) {
-                completions.removeIf(completion -> !completion.startsWith(parts[0]));
+                ListIterator<String> iter = completions.listIterator();
+                while(iter.hasNext()) {
+                    String completion = iter.next();
+                    if (!completion.startsWith(parts[0])) {
+                        iter.remove();
+                    }
+                }
             }
         } else if (parts.length == 2) {
             if (parts[0].equals("help") || parts[0].equals("stats")) {
@@ -256,4 +281,10 @@ public class MCMMOCommand implements ICommand {
             return -1;
         }
     }
+}
+
+/** Interface required for backward compatibility retrofit the lambdas into java6
+ */
+interface ISkillLevelMapper {
+    int getLevel(PlayerXp xp);
 }

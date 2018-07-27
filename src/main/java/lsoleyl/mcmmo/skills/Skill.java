@@ -1,6 +1,7 @@
 package lsoleyl.mcmmo.skills;
 
-import java.util.Optional;
+
+import lsoleyl.mcmmo.utility.Optional;
 
 public enum Skill {
     // Gathering skills - currently disabled... as they could debalance gregtech.

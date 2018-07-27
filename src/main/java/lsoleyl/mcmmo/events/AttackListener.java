@@ -20,8 +20,6 @@ import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.oredict.OreDictionary;
 
-import java.util.Optional;
-
 public class AttackListener {
     @SubscribeEvent
     public void onAttack(LivingAttackEvent event) {
