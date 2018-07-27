@@ -20,7 +20,7 @@ import java.util.Set;
 
 public class DataStorage {
     // As the current directory is always the server directory, we don't have to retrieve this path ourselves
-    public static final String FILE_PATH = ".\\saves\\mcmmo\\xp.json";
+    public static final String FILE_PATH = "." + File.separator + "saves" + File.separator + "mcmmo" + File.separator + "xp.json";
 
     // We are assuming that the player name is unique... this should work
     private Map<String/*displayName*/, PlayerXp> playerMap = new HashMap<String, PlayerXp>();
@@ -40,7 +40,10 @@ public class DataStorage {
 
     private static File getSaveFile() {
         File file = new File(FILE_PATH);
-        file.getParentFile().mkdirs(); // create missing directories if necessary
+        File parentFile = file.getParentFile();
+        if (parentFile != null) {
+            parentFile.mkdirs(); // create missing directories if necessary
+        }
         return file;
     }
 
