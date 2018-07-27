@@ -184,18 +184,12 @@ public class AttackListener {
                         }
                     }
 
-                    // Check whether we have to activate berserk
-                    if (!unarmed.isAbilityActive() && unarmed.isAbilityPrepared()) {
-                        unarmed.activateAbility(UnarmedSkill.berserkDuration.getValue(unarmed.getLevel()));
-                        unarmed.setCooldown(UnarmedSkill.BERSERK_COOLDOWN);
-                    }
-
-                    // Evaluate additional berserk damage
-                    if (unarmed.isAbilityActive()) {
+                    // perform ability activation check and apply berserk damage if it is active
+                    if (unarmed.checkedActivateAbility(UnarmedSkill.berserkDuration.getValue(unarmed.getLevel()))) {
                         event.ammount *= UnarmedSkill.BERSERK_DAMAGE_MULTIPLIER;
                     }
 
-                    // Set combat skill to reward after reducing damage
+                    // Set combat skill to reward xp after reducing damage
                     combatSkill = unarmed;
                 } else if (sourcePlayer.getHeldItem().getItem() instanceof ItemAxe){
                     // let's hope, all modded axes are derived form ItemAxe
@@ -216,14 +210,9 @@ public class AttackListener {
                         targetPlayer.inventory.damageArmor(AxesSkill.armorImpactDamage.getValue(axes.getLevel())*4);
                     }
 
-                    // Check whether we have to activate skull splitter
-                    if (!axes.isAbilityActive() && axes.isAbilityPrepared()) {
-                        axes.activateAbility(AxesSkill.skullSplitterDuration.getValue(axes.getLevel()));
-                        axes.setCooldown(AxesSkill.SKULL_SPLITTER_COOLDOWN);
-                    }
 
-                    // evaluate skull splitter
-                    if (axes.isAbilityActive()) {
+                    // perform ability activation check and apply skull splitter if it is active
+                    if (axes.checkedActivateAbility(AxesSkill.skullSplitterDuration.getValue(axes.getLevel()))) {
                         // disable hurt processing as it would lead to an endless recursion
                         processOnHurt = false;
                         for (Object obj : Entities.getEntitiesAround(event.entity, 1)) {
@@ -235,18 +224,27 @@ public class AttackListener {
                         processOnHurt = true;
                     }
 
-                    // Set combat skill to reward after reducing damage
+                    // Set combat skill to reward xp after reducing damage
                     combatSkill = axes;
                 } else if (sourcePlayer.getHeldItem().getItem() instanceof ItemSword) {
+                    XPWrapper swords = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.SWORDS);
 
-                    //TODO apply all swords effects
+                    // perform ability activation check and apply clean cutter if it is active
+                    if (swords.checkedActivateAbility(SwordsSkill.CLEAN_CUTTER_DURATION)) {
+                        event.ammount *= SwordsSkill.cleanCutterDamageMultiplier.getValue(swords.getLevel());
+                    }
 
-                    // We can increase the poisons strength and duration
-                    //targetPlayer.addPotionEffect(new PotionEffect(Potion.poison.getId(), 20*5, 0, true));
 
+                    // Now apply the poisoning effects
+                    if (Rand.evaluate(SwordsSkill.poisonChance.getValue(swords.getLevel()))) {
+                        int poisonDuration = SwordsSkill.poisonDuration.getValue(swords.getLevel()) * XPWrapper.TICKS_PER_SECOND;
+                        int poisonPotency = SwordsSkill.poisonPotency.getValue(swords.getLevel());
 
+                        event.entityLiving.addPotionEffect(new PotionEffect(Potion.poison.getId(), poisonDuration, poisonPotency, true));
+                    }
 
-                    //TODO swords
+                    // Set combat skill to reward xp after reducing damage
+                    combatSkill = swords;
                 }
             }
 

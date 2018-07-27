@@ -10,6 +10,7 @@ import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemAxe;
+import net.minecraft.item.ItemSword;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 /** Listens on right click events to prepare abilities and register them to the cooldown manager
@@ -35,19 +36,41 @@ public class AbilityListener {
                     }
                 }
             }
-        } else if (event.entityPlayer.getHeldItem().getItem() instanceof ItemAxe) {
-            // Skull splitter
-            if (event.entityPlayer.isSneaking()) {
-                EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;
-                XPWrapper axes = MCMMO.getPlayerXp(player).getSkillXp(Skill.AXES);
-                if (axes.isAbilityPrepared()) {
-                    axes.cancelPrepare();  // lower axe
-                } else if (!axes.isAbilityActive()) {
-                    if (axes.isOnCooldown()) {
-                        new ChatWriter(player).writeMessage(ChatFormat.formatCooldown("Skull splitter", axes.getRemainingCooldown()));
-                    } else {
-                        // prepare ability (register will set the ability to prepared)
-                        CooldownManager.getInstance().register(player, axes, SkillRegistry.getInstance().AXES);
+        } else if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
+            // If we are holding a tool, we aren't interested in right clicking a block... With the tool we can also right
+            // click in the air. But if we don't ignore the block right click then we would receive two events and directly
+            // cancel the prepare.
+
+            if (event.entityPlayer.getHeldItem().getItem() instanceof ItemAxe) {
+                // Skull splitter
+                if (event.entityPlayer.isSneaking()) {
+                    EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;
+                    XPWrapper axes = MCMMO.getPlayerXp(player).getSkillXp(Skill.AXES);
+                    if (axes.isAbilityPrepared()) {
+                        axes.cancelPrepare();  // lower axe
+                    } else if (!axes.isAbilityActive()) {
+                        if (axes.isOnCooldown()) {
+                            new ChatWriter(player).writeMessage(ChatFormat.formatCooldown("Skull splitter", axes.getRemainingCooldown()));
+                        } else {
+                            // prepare ability (register will set the ability to prepared)
+                            CooldownManager.getInstance().register(player, axes, SkillRegistry.getInstance().AXES);
+                        }
+                    }
+                }
+            } else if (event.entityPlayer.getHeldItem().getItem() instanceof ItemSword) {
+                // Clean cutter
+                if (event.entityPlayer.isSneaking()) {
+                    EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;
+                    XPWrapper swords = MCMMO.getPlayerXp(player).getSkillXp(Skill.SWORDS);
+                    if (swords.isAbilityPrepared()) {
+                        swords.cancelPrepare();  // lower sword
+                    } else if (!swords.isAbilityActive()) {
+                        if (swords.isOnCooldown()) {
+                            new ChatWriter(player).writeMessage(ChatFormat.formatCooldown("Clean cutter", swords.getRemainingCooldown()));
+                        } else {
+                            // prepare ability (register will set the ability to prepared)
+                            CooldownManager.getInstance().register(player, swords, SkillRegistry.getInstance().SWORDS);
+                        }
                     }
                 }
             }

@@ -22,6 +22,8 @@ public class XPWrapper {
     private long abilityEnd = 0; // if an ability is active, then this will hold the time after which it runs out
     private long abilityPrepareEnd = 0; // for activation abilities like berserk the time after which it automatically disables again.
     public static final int TICKS_PER_SECOND = 20;
+    public static final int PREPARE_TIMEOUT = 3; //s
+    public static final int ABILITY_COOLDOWN = 120; //s
 
 
     public XPWrapper(PlayerXp xp, Skill skill) {
@@ -94,12 +96,18 @@ public class XPWrapper {
      */
     public int getRemainingCooldown() { return (int) ((cooldownEnd - MCMMO.tickCount) / TICKS_PER_SECOND); }
 
-    /** Sets the skill on cooldown for the given amount of seconds.
-     *
-     * @param seconds the number of seconds to set as cooldown
+    /** Sets the skill on cooldown for the predefined constant time of 120 seconds.
      */
-    public void setCooldown(int seconds) {
-        cooldownEnd = MCMMO.tickCount + TICKS_PER_SECOND * seconds;
+    public void setCooldown() {
+        setCooldown(ABILITY_COOLDOWN);
+    }
+
+    /** Sets the skill on cooldown for the given amount of seconds
+     *
+     * @param cooldown the cooldown to apply to the skill's ability
+     */
+    public void setCooldown(int cooldown) {
+        cooldownEnd = MCMMO.tickCount + TICKS_PER_SECOND * cooldown;
     }
 
     /** Returns true if the skill's ability is currently active
@@ -110,9 +118,27 @@ public class XPWrapper {
      *
      * @param seconds the number of seconds after which the ability runs out
      */
-    public void activateAbility(int seconds) {
+    private void activateAbility(int seconds) {
         abilityEnd = MCMMO.tickCount + TICKS_PER_SECOND * seconds;
         abilityPrepareEnd = 0; // with ability activation the skill is no longer prepared
+    }
+
+
+    /** Checks whether the ability can be activated and activates it for the given number of seconds and
+     *  also sets the ability's cooldown
+     *
+     * @param abilityDuration the number of seconds, the ability should be activated for.
+     *
+     * @return true if the ability was already active or has now been activated
+     */
+    public boolean checkedActivateAbility(int abilityDuration) {
+        // Check whether we have to activate berserk
+        if (!isAbilityActive() && isAbilityPrepared()) {
+            activateAbility(abilityDuration);
+            setCooldown();
+        }
+
+        return isAbilityActive();
     }
 
     /** Returns true if the user has prepared the given ability
@@ -121,7 +147,7 @@ public class XPWrapper {
 
     /** Prepare activation of ability the ability will be in prepared state for 3 seconds
      */
-    public void prepareAbility() { abilityPrepareEnd = MCMMO.tickCount + TICKS_PER_SECOND * 3; }
+    public void prepareAbility() { abilityPrepareEnd = MCMMO.tickCount + TICKS_PER_SECOND * PREPARE_TIMEOUT; }
 
     /** Cancels preparing the ability
      */

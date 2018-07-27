@@ -62,7 +62,7 @@ public class SwordsSkill implements IAbilitySkill {
             poisonDuration.incrementLevelStep + " levels.");
         chat.writeMessage(ChatFormat.formatEffect("Poison potency", "", poisonPotency.startLevel));
         chat.writeMessage(" You now know how to mix a poison, which strikes down your opponents even faster. The poisons potency "+
-            " Increases by one level at level " + poisonPotency + " and by another level at level " + (poisonPotency.startLevel + poisonPotency.incrementLevelStep));
+            " Increases by one level at level " + poisonPotency.startLevel + " and by another level at level " + (poisonPotency.startLevel + poisonPotency.incrementLevelStep));
     }
 
     @Override
