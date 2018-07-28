@@ -8,6 +8,7 @@ import lsoleyl.mcmmo.skills.Skill;
 import lsoleyl.mcmmo.skills.SkillRegistry;
 import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
+import lsoleyl.mcmmo.utility.Tools;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemSword;
@@ -41,7 +42,7 @@ public class AbilityListener {
             // click in the air. But if we don't ignore the block right click then we would receive two events and directly
             // cancel the prepare.
 
-            if (event.entityPlayer.getHeldItem().getItem() instanceof ItemAxe) {
+            if (Tools.isAxe(event.entityPlayer.getHeldItem())) {
                 // Skull splitter
                 if (event.entityPlayer.isSneaking()) {
                     EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;
@@ -57,7 +58,7 @@ public class AbilityListener {
                         }
                     }
                 }
-            } else if (event.entityPlayer.getHeldItem().getItem() instanceof ItemSword) {
+            } else if (Tools.isSword(event.entityPlayer.getHeldItem())) {
                 // Clean cutter
                 if (event.entityPlayer.isSneaking()) {
                     EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;

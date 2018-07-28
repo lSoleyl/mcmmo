@@ -11,9 +11,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemSword;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -161,8 +159,6 @@ public class AttackListener {
             // Regular combat damage
             if (sourcePlayer != null) {
                 // Apply combat damage increasing skills
-
-                //TODO detect the player's equipped item
                 if (sourcePlayer.getHeldItem() == null) {
                     // Unarmed
                     XPWrapper unarmed = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.UNARMED);
@@ -189,7 +185,7 @@ public class AttackListener {
 
                     // Set combat skill to reward xp after reducing damage
                     combatSkill = unarmed;
-                } else if (sourcePlayer.getHeldItem().getItem() instanceof ItemAxe){
+                } else if (Tools.isAxe(sourcePlayer.getHeldItem())){
                     // let's hope, all modded axes are derived form ItemAxe
 
                     XPWrapper axes = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.AXES);
@@ -224,7 +220,7 @@ public class AttackListener {
 
                     // Set combat skill to reward xp after reducing damage
                     combatSkill = axes;
-                } else if (sourcePlayer.getHeldItem().getItem() instanceof ItemSword) {
+                } else if (Tools.isSword(sourcePlayer.getHeldItem())) {
                     XPWrapper swords = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.SWORDS);
 
                     // perform ability activation check and apply clean cutter if it is active
