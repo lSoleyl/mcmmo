@@ -15,6 +15,7 @@ public class SkillRegistry {
     // Utility skills
     public final DivingSkill DIVING = new DivingSkill();
     public final FirefightingSkill FIREFIGHTING = new FirefightingSkill();
+    public final ParkourSkill PARKOUR = new ParkourSkill();
 
 
     // Combat skills
@@ -33,6 +34,7 @@ public class SkillRegistry {
         // Add all available skill objects to the skill lookup map
         skillMap.put(Skill.DIVING, DIVING);
         skillMap.put(Skill.FIREFIGHTING, FIREFIGHTING);
+        skillMap.put(Skill.PARKOUR, PARKOUR);
 
         skillMap.put(Skill.ARCHERY, ARCHERY);
         skillMap.put(Skill.AXES, AXES);

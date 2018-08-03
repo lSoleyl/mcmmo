@@ -45,7 +45,7 @@ public class AxesSkill implements IAbilitySkill {
 
         chat.writeMessage(ChatFormat.formatCaption("ABILITY"));
         chat.writeMessage(ChatFormat.formatEffect("Skull splitter", ""));
-        chat.writeMessage(" Shift right click to prepare ability, attack within 3s to activate the ability."+
+        chat.writeMessage(" Sneak right click to prepare ability, attack within 3s to activate the ability."+
                 " While active, skull splitter will deal 50% of the attack damage to every other entity within a radius of" +
                 " one block around the target. The duration starts at " + skullSplitterDuration.startValue + "s and increases by " + skullSplitterDuration.incrementValue + "s every " +
                 skullSplitterDuration.incrementLevelStep + " levels. The cooldown is " + SKULL_SPLITTER_COOLDOWN + "s.");

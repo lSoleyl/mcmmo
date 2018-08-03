@@ -46,7 +46,7 @@ public class SwordsSkill implements IAbilitySkill {
 
         chat.writeMessage(ChatFormat.formatCaption("ABILITY"));
         chat.writeMessage(ChatFormat.formatEffect("Clean cutter", ""));
-        chat.writeMessage(" Shift right click to prepare ability, attack within 3s to activate the ability."+
+        chat.writeMessage(" Sneak right click to prepare ability, attack within 3s to activate the ability."+
                 " While active, clean cutter will multiply the dealt damage for " + CLEAN_CUTTER_DURATION + "s." +
                 " The damage multiplier starts at " + cleanCutterDamageMultiplier.startValue + " and increases by " + cleanCutterDamageMultiplier.incrementValue+ " every " +
                 cleanCutterDamageMultiplier.incrementLevelStep + " levels. The cooldown is " + CLEAN_CUTTER_COOLDOWN + "s.");

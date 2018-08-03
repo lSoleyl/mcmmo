@@ -246,6 +246,7 @@ public class AttackListener {
             if (targetPlayer != null) {
                 // Reduce the damage if the damage is actually caused by an attack and not by environmental damage
                 if (event.source.damageType.equals("drown")) {
+                    // Drown damage -> diving skill
                     XPWrapper diving = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.DIVING);
 
                     if (Rand.evaluate(DivingSkill.AIR_RESTORE_CHANCE.getValue(diving.getLevel()))) {
@@ -256,10 +257,39 @@ public class AttackListener {
                     // now award xp for the remaining damage
                     Optional<Integer> newLevel = diving.addXp((long) (DivingSkill.XP_PER_DAMAGE * event.ammount));
                     MCMMO.playerLevelUp(targetPlayer, Skill.DIVING, newLevel);
+                } else if (event.source.damageType.equals("fall")) {
+                    // Fall damage -> parkour skill
+                    XPWrapper parkour = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.PARKOUR);
 
+
+                    int rollXp = 0; // The xp received from performing a roll
+
+                    // Sneaking is necessary to perform a roll
+                    if (targetPlayer.isSneaking()) {
+                        // Reduce suffered damage by performing a roll
+                        event.ammount -= event.ammount * ParkourSkill.PARKOUR_ROLL_DAMAGE_REDUCTION.getValue(parkour.getLevel());
+
+                        // Check whether player has performed a graceful roll
+                        if (Rand.evaluate(ParkourSkill.PERFECT_ROLL_CHANCE.getValue(parkour.getLevel()))) {
+                            // Apply speed potion effect
+                            targetPlayer.addPotionEffect(new PotionEffect(Potion.moveSpeed.getId(), ParkourSkill.SPEED_BOOST_DURATION *  XPWrapper.TICKS_PER_SECOND, 1, true));
+                            event.ammount = 0;
+                            rollXp = ParkourSkill.PERFECT_ROLL_XP;
+                        } else {
+                            rollXp = ParkourSkill.ROLL_XP;
+                        }
+
+                        // This comes very close to a landing sound
+                        Sound.HORSE_LAND.playAt(targetPlayer);
+                    }
+
+                    // award player xp for suffered fall damage and performed rolls
+                    Optional<Integer> newLevel = parkour.addXp((long) (ParkourSkill.XP_PER_DAMAGE * event.ammount + rollXp));
+                    MCMMO.playerLevelUp(targetPlayer, Skill.PARKOUR, newLevel);
                 } else if (event.source.getHungerDamage() == 0f) {
-                    //TODO only apply combat skill damage reduction to actual combat damage
-                    //TODO this currently also applied to drowning and fall damage... This shouldn't effect this skill.
+                    //TODO make sure this is actually only combat damage
+
+                    // Actual combat damage -> reduce by combat skill
                     XPWrapper combat = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.COMBAT);
                     event.ammount -= CombatSkill.damageReduction.getValue(combat.getLevel());
 

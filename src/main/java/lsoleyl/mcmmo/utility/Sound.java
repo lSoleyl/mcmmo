@@ -1,6 +1,5 @@
 package lsoleyl.mcmmo.utility;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 
 // from: https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/mapping-and-modding-tutorials/1571574-all-minecraft-playsound-file-names
@@ -12,6 +11,11 @@ public enum Sound {
     NOTE_HAT("note.hat"),
     NOTE_PLING("note.pling"),
     NOTE_SNARE("note.snare"),
+
+    HORSE_ARMOR("mob.horse.armor"),
+    HORSE_JUMP("mob.horse.jump"),
+    HORSE_LAND("mob.horse.land"),
+    HORSE_LEATHER("mob.horse.leather"),
 
     PORTAL("portal.portal"),
     PORTAL_TRAVEL("portal.travel"),
@@ -61,6 +65,14 @@ public enum Sound {
     }
 
     public void playAt(EntityPlayer player, float volume, float pitch) {
+        playSoundAt(soundId, player, volume, pitch);
+    }
+
+    public static void playSoundAt(String soundId, EntityPlayer player) {
+        playSoundAt(soundId, player, 1.0f, 1.0f);
+    }
+
+    public static void playSoundAt(String soundId, EntityPlayer player, float volume, float pitch) {
         player.getEntityWorld().playSoundEffect(player.posX+0.5, player.posY+0.5, player.posZ+0.5, soundId, volume, pitch);
     }
 }

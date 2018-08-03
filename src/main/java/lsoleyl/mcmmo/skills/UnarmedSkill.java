@@ -45,7 +45,7 @@ public class UnarmedSkill implements IAbilitySkill {
 
         chat.writeMessage(ChatFormat.formatCaption("ABILITY"));
         chat.writeMessage(ChatFormat.formatEffect("Berserk", ""));
-        chat.writeMessage(" Shift right click to prepare ability, attack within 3s to activate the ability."+
+        chat.writeMessage(" Sneak right click to prepare ability, attack within 3s to activate the ability."+
             " While active, Berserk will increase unarmed damage by 50%. The abilities duration starts at " +
             berserkDuration.startValue + "s and increases by " + berserkDuration.incrementValue + "s every " +
             berserkDuration.incrementLevelStep + " levels. The cooldown is " + BERSERK_COOLDOWN + "s.");

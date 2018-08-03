@@ -8,7 +8,7 @@ public enum Skill {
     //                    They are hard to implement right to prevent abuse.
     //EXCAVATION, MINING, WOODCUTTING,
     // Utility Skills
-    DIVING, FIREFIGHTING, //CLIMBING,
+    DIVING, FIREFIGHTING, PARKOUR,
     // Combat skills
     ARCHERY, AXES, COMBAT, SWORDS, UNARMED;
 

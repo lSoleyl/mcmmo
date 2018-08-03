@@ -10,8 +10,6 @@ import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
 import lsoleyl.mcmmo.utility.Tools;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemAxe;
-import net.minecraft.item.ItemSword;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 /** Listens on right click events to prepare abilities and register them to the cooldown manager
