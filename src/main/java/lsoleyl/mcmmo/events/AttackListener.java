@@ -244,12 +244,29 @@ public class AttackListener {
 
             // Apply damage reduction of target player's combat skill
             if (targetPlayer != null) {
-                XPWrapper xp = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.COMBAT);
-                event.ammount -= CombatSkill.damageReduction.getValue(xp.getLevel());
+                // Reduce the damage if the damage is actually caused by an attack and not by environmental damage
+                if (event.source.damageType.equals("drown")) {
+                    XPWrapper diving = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.DIVING);
 
-                // now award xp for the remaining damage
-                Optional<Integer> newLevel = xp.addXp((long) (CombatSkill.XP_PER_DAMAGE * event.ammount));
-                MCMMO.playerLevelUp(targetPlayer, Skill.COMBAT, newLevel);
+                    if (Rand.evaluate(DivingSkill.AIR_RESTORE_CHANCE.getValue(diving.getLevel()))) {
+                        // restore air
+                        targetPlayer.setAir(300);
+                    }
+
+                    // now award xp for the remaining damage
+                    Optional<Integer> newLevel = diving.addXp((long) (DivingSkill.XP_PER_DAMAGE * event.ammount));
+                    MCMMO.playerLevelUp(targetPlayer, Skill.DIVING, newLevel);
+
+                } else if (event.source.getHungerDamage() == 0f) {
+                    //TODO only apply combat skill damage reduction to actual combat damage
+                    //TODO this currently also applied to drowning and fall damage... This shouldn't effect this skill.
+                    XPWrapper combat = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.COMBAT);
+                    event.ammount -= CombatSkill.damageReduction.getValue(combat.getLevel());
+
+                    // now award xp for the remaining damage
+                    Optional<Integer> newLevel = combat.addXp((long) (CombatSkill.XP_PER_DAMAGE * event.ammount));
+                    MCMMO.playerLevelUp(targetPlayer, Skill.COMBAT, newLevel);
+                }
             }
 
             // After we have reduced the damage by the target player's combat skill, we can convert the remaining dealt damage
