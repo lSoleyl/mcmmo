@@ -286,8 +286,7 @@ public class AttackListener {
                     // award player xp for suffered fall damage and performed rolls
                     Optional<Integer> newLevel = parkour.addXp((long) (ParkourSkill.XP_PER_DAMAGE * event.ammount + rollXp));
                     MCMMO.playerLevelUp(targetPlayer, Skill.PARKOUR, newLevel);
-                } else if (event.source.getHungerDamage() == 0f) {
-                    //TODO make sure this is actually only combat damage
+                } else if (event.source.getHungerDamage() == 0f && !event.source.damageType.equals("inWall")) {
 
                     // Actual combat damage -> reduce by combat skill
                     XPWrapper combat = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.COMBAT);
