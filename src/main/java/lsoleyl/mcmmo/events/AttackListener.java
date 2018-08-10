@@ -14,11 +14,28 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.oredict.OreDictionary;
 
 public class AttackListener {
+
+    /** Returns true if the given damage source is a close combat damage.
+     *  TODO: move damage categorization into a utility class to make this more readable and easier
+     */
+    private boolean isCombatDamage(DamageSource source) {
+        return !source.isProjectile()
+                && !source.isFireDamage()
+                && !source.isMagicDamage()
+                && !source.isExplosion()
+                && !source.damageType.equals("drown")
+                && !source.damageType.equals("fall")
+                && !source.damageType.equals("inWall")
+                && source.getHungerDamage() == 0f;
+    }
+
+
     @SubscribeEvent
     public void onAttack(LivingAttackEvent event) {
         EntityPlayerMP targetPlayer = null;
@@ -32,7 +49,7 @@ public class AttackListener {
         }
 
         if (targetPlayer != null) {
-            if (!event.source.isProjectile() && !event.source.isFireDamage() && !event.source.isExplosion() && !event.source.isMagicDamage()) {
+            if (isCombatDamage(event.source)) {
                 // Seems to be regular combat damage
                 XPWrapper combat = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.COMBAT);
 
@@ -319,20 +336,5 @@ public class AttackListener {
             Optional<Integer> newLevel = skillXp.addXp((long) (XP_PER_DAMAGE * effectiveDamage));
             MCMMO.playerLevelUp(sourcePlayer, skillXp.getSkill(), newLevel);
         }
-    }
-
-    public String print(EntityPlayer player) {
-        return "Player(name=" + player.getDisplayName() + ",xp=" + MCMMO.getPlayerXp(player) + ",currentItem=" + print(player.getCurrentEquippedItem()) + ",usingItem=" + player.isUsingItem() + ")";
-
-    }
-
-    public String print(ItemStack item) {
-        String names = "";
-        for(int id : OreDictionary.getOreIDs(item)) {
-            names += OreDictionary.getOreName(id) + ",";
-        }
-
-        //TODO the unlocalized name seems to always contain sword for swords... etc.
-        return "Item(dispName=" + item.getDisplayName() + ",unlocalName=" + item.getUnlocalizedName() + ",names=[" + names + "])";
     }
 }
