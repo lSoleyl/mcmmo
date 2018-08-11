@@ -1,6 +1,5 @@
 package lsoleyl.mcmmo.skills;
 
-import java.nio.channels.SelectionKey;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +15,7 @@ public class SkillRegistry {
     public final DivingSkill DIVING = new DivingSkill();
     public final FirefightingSkill FIREFIGHTING = new FirefightingSkill();
     public final ParkourSkill PARKOUR = new ParkourSkill();
+    public final PoisonSkill POISON = new PoisonSkill();
 
 
     // Combat skills
@@ -35,6 +35,7 @@ public class SkillRegistry {
         skillMap.put(Skill.DIVING, DIVING);
         skillMap.put(Skill.FIREFIGHTING, FIREFIGHTING);
         skillMap.put(Skill.PARKOUR, PARKOUR);
+        skillMap.put(Skill.POISON, POISON);
 
         skillMap.put(Skill.ARCHERY, ARCHERY);
         skillMap.put(Skill.AXES, AXES);

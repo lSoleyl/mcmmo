@@ -7,17 +7,14 @@ import lsoleyl.mcmmo.skills.*;
 import lsoleyl.mcmmo.utility.*;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.oredict.OreDictionary;
 
 public class AttackListener {
     @SubscribeEvent
@@ -85,6 +82,25 @@ public class AttackListener {
                         source.worldObj.removeEntity(source);
 
                         targetPlayer.inventory.addItemStackToInventory(new ItemStack((Item) Item.itemRegistry.getObject("minecraft:arrow")));
+                    }
+                }
+            } else if (damage.isPoison || damage.isWither) {
+                // Poison/wither cancel chance
+                XPWrapper poison = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.POISON);
+
+                if (damage.isPoison && targetPlayer.isPotionActive(Potion.poison) && !poison.isOnCooldown()) {
+                    if (Rand.evaluate(PoisonSkill.poisonCancelChance.getValue(poison.getLevel()))) {
+                        // We cannot remove the effect here, we need to wait until the next tick or else we get a
+                        // ConcurrentModificationException as the server is currently iterating over the list of active potion effects to apply them.
+                        TickListener.clearEffectList.add(new Tuple<EntityPlayerMP, Integer>(targetPlayer, Potion.poison.id));
+                        poison.setCooldown(PoisonSkill.EFFECT_CANCEL_COOLDOWN);
+                    }
+                } else if (damage.isWither && targetPlayer.isPotionActive(Potion.wither) && !poison.isOnCooldown()) {
+                    if (Rand.evaluate(PoisonSkill.witherCancelChance.getValue(poison.getLevel()))) {
+                        // We cannot remove the effect here, we need to wait until the next tick or else we get a
+                        // ConcurrentModificationException as the server is currently iterating over the list of active potion effects to apply them.
+                        TickListener.clearEffectList.add(new Tuple<EntityPlayerMP, Integer>(targetPlayer, Potion.wither.id));
+                        poison.setCooldown(PoisonSkill.EFFECT_CANCEL_COOLDOWN);
                     }
                 }
             }
@@ -155,8 +171,16 @@ public class AttackListener {
 
                 // check whether we have to apply fire effect from firefighting skill
                 XPWrapper fireFighting = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.FIREFIGHTING);
-                if (event.entityLiving != null) {
-                    event.entityLiving.setFire(FirefightingSkill.fireArrowFireDuration.getValue(fireFighting.getLevel()));
+                int fireDuration = FirefightingSkill.fireArrowFireDuration.getValue(fireFighting.getLevel());
+                if (event.entityLiving != null && fireDuration > 0) {
+                    event.entityLiving.setFire(fireDuration);
+                }
+
+                // check whether we have to apply the wither effect from poison skill
+                XPWrapper poison = MCMMO.getPlayerXp(sourcePlayer).getSkillXp(Skill.POISON);
+                int witherDuration = PoisonSkill.witherArrowDuration.getValue(poison.getLevel());
+                if (event.entityLiving != null && witherDuration > 0) {
+                    event.entityLiving.addPotionEffect(new PotionEffect(Potion.wither.id, witherDuration * XPWrapper.TICKS_PER_SECOND, 1, true));
                 }
             }
         } else if(damage.isDrown) {
@@ -164,7 +188,7 @@ public class AttackListener {
                 // Drown damage -> diving skill
                 XPWrapper diving = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.DIVING);
 
-                if (Rand.evaluate(DivingSkill.AIR_RESTORE_CHANCE.getValue(diving.getLevel()))) {
+                if (Rand.evaluate(DivingSkill.airRestoreChance.getValue(diving.getLevel()))) {
                     // restore air
                     targetPlayer.setAir(300);
                 }
@@ -184,12 +208,12 @@ public class AttackListener {
                 // Sneaking is necessary to perform a roll
                 if (targetPlayer.isSneaking()) {
                     // Reduce suffered damage by performing a roll
-                    event.ammount -= event.ammount * ParkourSkill.PARKOUR_ROLL_DAMAGE_REDUCTION.getValue(parkour.getLevel());
+                    event.ammount -= event.ammount * ParkourSkill.parkourRollDamageReduction.getValue(parkour.getLevel());
 
                     // Check whether player has performed a graceful roll
-                    if (Rand.evaluate(ParkourSkill.PERFECT_ROLL_CHANCE.getValue(parkour.getLevel()))) {
+                    if (Rand.evaluate(ParkourSkill.perfectRollChance.getValue(parkour.getLevel()))) {
                         // Apply speed potion effect
-                        targetPlayer.addPotionEffect(new PotionEffect(Potion.moveSpeed.getId(), ParkourSkill.SPEED_BOOST_DURATION * XPWrapper.TICKS_PER_SECOND, 1, true));
+                        targetPlayer.addPotionEffect(new PotionEffect(Potion.moveSpeed.id, ParkourSkill.SPEED_BOOST_DURATION * XPWrapper.TICKS_PER_SECOND, 1, true));
                         event.ammount = 0;
                         rollXp = ParkourSkill.PERFECT_ROLL_XP;
                     } else {
@@ -204,6 +228,19 @@ public class AttackListener {
                 Optional<Integer> newLevel = parkour.addXp((long) (ParkourSkill.XP_PER_DAMAGE * event.ammount + rollXp));
                 MCMMO.playerLevelUp(targetPlayer, Skill.PARKOUR, newLevel);
             }
+        } else if (targetPlayer != null && (damage.isPoison || damage.isWither)) {
+            // Effect cancel chance has already been evaluated so just reward the player for the suffered damage
+            int XP_PER_DAMAGE = 0;
+            if (damage.isPoison && targetPlayer.isPotionActive(Potion.poison)) {
+                XP_PER_DAMAGE = PoisonSkill.XP_PER_DAMAGE;
+            } else if (damage.isWither && targetPlayer.isPotionActive(Potion.wither)) {
+                XP_PER_DAMAGE = PoisonSkill.XP_PER_DAMAGE * PoisonSkill.WITHER_MULTIPLIER;
+            }
+
+            // Level up the skill
+            XPWrapper poison = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.POISON);
+            Optional<Integer> newLevel = poison.addXp((long) (XP_PER_DAMAGE * event.ammount));
+            MCMMO.playerLevelUp(targetPlayer, Skill.POISON, newLevel);
         } else if (damage.isDodgeable) {
             // Regular combat damage
             if (sourcePlayer != null) {
@@ -283,7 +320,7 @@ public class AttackListener {
                         int poisonDuration = SwordsSkill.poisonDuration.getValue(swords.getLevel()) * XPWrapper.TICKS_PER_SECOND;
                         int poisonPotency = SwordsSkill.poisonPotency.getValue(swords.getLevel());
 
-                        event.entityLiving.addPotionEffect(new PotionEffect(Potion.poison.getId(), poisonDuration, poisonPotency, true));
+                        event.entityLiving.addPotionEffect(new PotionEffect(Potion.poison.id, poisonDuration, poisonPotency, true));
                     }
 
                     // Set combat skill to reward xp after reducing damage

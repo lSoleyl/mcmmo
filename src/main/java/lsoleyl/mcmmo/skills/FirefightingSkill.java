@@ -57,6 +57,6 @@ public class FirefightingSkill implements ISkill {
         chat.writeMessage(ChatFormat.formatEffect("Fireworks", "", fireArrowFireDuration.startLevel));
         chat.writeMessage(" Shooting arrows will give the target a fire effect. The fire effect will last longer the higher the level."+
                 " The fire effect lasts " + fireArrowFireDuration.startValue + "s at level " + fireArrowFireDuration.startLevel +
-                ". The value increases by " + fireArrowFireDuration.incrementValue + "s every " + fireArrowFireDuration.incrementLevelStep + " level.");
+                ". The value increases by " + fireArrowFireDuration.incrementValue + "s every " + fireArrowFireDuration.incrementLevelStep + " levels.");
     }
 }
