@@ -20,22 +20,6 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.oredict.OreDictionary;
 
 public class AttackListener {
-
-    /** Returns true if the given damage source is a close combat damage.
-     *  TODO: move damage categorization into a utility class to make this more readable and easier
-     */
-    private boolean isCombatDamage(DamageSource source) {
-        return !source.isProjectile()
-                && !source.isFireDamage()
-                && !source.isMagicDamage()
-                && !source.isExplosion()
-                && !source.damageType.equals("drown")
-                && !source.damageType.equals("fall")
-                && !source.damageType.equals("inWall")
-                && source.getHungerDamage() == 0f;
-    }
-
-
     @SubscribeEvent
     public void onAttack(LivingAttackEvent event) {
         EntityPlayerMP targetPlayer = null;
@@ -49,7 +33,9 @@ public class AttackListener {
         }
 
         if (targetPlayer != null) {
-            if (isCombatDamage(event.source)) {
+            DamageClassifier damage = DamageClassifier.classify(event.source);
+
+            if (damage.isDodgeable) {
                 // Seems to be regular combat damage
                 XPWrapper combat = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.COMBAT);
 
@@ -72,7 +58,7 @@ public class AttackListener {
                         Entities.knockBack(targetPlayer, (EntityLivingBase) event.source.getEntity());
                     }
                 }
-            } else if (event.source.isProjectile() && event.source.getSourceOfDamage() instanceof EntityArrow) {
+            } else if (damage.isArrow) {
                 // Evaluate catch and curve shot chance
                 XPWrapper archery = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.ARCHERY);
                 if (Rand.evaluate(ArcherySkill.catchChance.getValue(archery.getLevel()))) {
@@ -129,14 +115,15 @@ public class AttackListener {
         // the damage reduced
         XPWrapper combatSkill = null;
 
+        DamageClassifier damage = DamageClassifier.classify(event.source);
 
         // Apply firefighting skills
-        if (event.source.isFireDamage() || event.source.isExplosion()) {
+        if (damage.isFire || damage.isExplosion) {
             if (targetPlayer != null) {
                 // only evaluate this for players
                 XPWrapper xp = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.FIREFIGHTING);
 
-                if (event.source.isFireDamage()) {
+                if (damage.isFire) {
                     if (Rand.evaluate(FirefightingSkill.fireResistanceChance.getValue(xp.getLevel()))) {
                         event.ammount = 0.0f; // Cancel out all fire damage for this event
                     }
@@ -146,11 +133,11 @@ public class AttackListener {
                 }
 
                 // Now calculate the received experience from the burn damage
-                int typeFactor = (event.source.isExplosion()) ? FirefightingSkill.EXPLOSION_XP_MULTIPLIER : 1;
+                int typeFactor = (damage.isExplosion) ? FirefightingSkill.EXPLOSION_XP_MULTIPLIER : 1;
                 Optional<Integer> newLevel = xp.addXp((long) (event.ammount * FirefightingSkill.XP_PER_DAMAGE * typeFactor));
                 MCMMO.playerLevelUp(targetPlayer, Skill.FIREFIGHTING, newLevel);
             }
-        } else if (event.source.isProjectile() && event.source.getSourceOfDamage() instanceof EntityArrow) {
+        } else if (damage.isArrow) {
 
             // Increase damage after we have made sure, the arrow hasn't been caught (happens in onAttack())
             if (sourcePlayer != null) {
@@ -172,7 +159,52 @@ public class AttackListener {
                     event.entityLiving.setFire(FirefightingSkill.fireArrowFireDuration.getValue(fireFighting.getLevel()));
                 }
             }
-        } else if (!event.source.isMagicDamage()) {
+        } else if(damage.isDrown) {
+            if (targetPlayer != null) {
+                // Drown damage -> diving skill
+                XPWrapper diving = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.DIVING);
+
+                if (Rand.evaluate(DivingSkill.AIR_RESTORE_CHANCE.getValue(diving.getLevel()))) {
+                    // restore air
+                    targetPlayer.setAir(300);
+                }
+
+                // now award xp for the remaining damage
+                Optional<Integer> newLevel = diving.addXp((long) (DivingSkill.XP_PER_DAMAGE * event.ammount));
+                MCMMO.playerLevelUp(targetPlayer, Skill.DIVING, newLevel);
+            }
+        } else if(damage.isFall) {
+            if (targetPlayer != null) {
+                // Fall damage -> parkour skill
+                XPWrapper parkour = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.PARKOUR);
+
+
+                int rollXp = 0; // The xp received from performing a roll
+
+                // Sneaking is necessary to perform a roll
+                if (targetPlayer.isSneaking()) {
+                    // Reduce suffered damage by performing a roll
+                    event.ammount -= event.ammount * ParkourSkill.PARKOUR_ROLL_DAMAGE_REDUCTION.getValue(parkour.getLevel());
+
+                    // Check whether player has performed a graceful roll
+                    if (Rand.evaluate(ParkourSkill.PERFECT_ROLL_CHANCE.getValue(parkour.getLevel()))) {
+                        // Apply speed potion effect
+                        targetPlayer.addPotionEffect(new PotionEffect(Potion.moveSpeed.getId(), ParkourSkill.SPEED_BOOST_DURATION * XPWrapper.TICKS_PER_SECOND, 1, true));
+                        event.ammount = 0;
+                        rollXp = ParkourSkill.PERFECT_ROLL_XP;
+                    } else {
+                        rollXp = ParkourSkill.ROLL_XP;
+                    }
+
+                    // This comes very close to a landing sound
+                    Sound.HORSE_LAND.playAt(targetPlayer);
+                }
+
+                // award player xp for suffered fall damage and performed rolls
+                Optional<Integer> newLevel = parkour.addXp((long) (ParkourSkill.XP_PER_DAMAGE * event.ammount + rollXp));
+                MCMMO.playerLevelUp(targetPlayer, Skill.PARKOUR, newLevel);
+            }
+        } else if (damage.isDodgeable) {
             // Regular combat damage
             if (sourcePlayer != null) {
                 // Apply combat damage increasing skills
@@ -261,58 +293,13 @@ public class AttackListener {
 
             // Apply damage reduction of target player's combat skill
             if (targetPlayer != null) {
-                // Reduce the damage if the damage is actually caused by an attack and not by environmental damage
-                if (event.source.damageType.equals("drown")) {
-                    // Drown damage -> diving skill
-                    XPWrapper diving = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.DIVING);
+                // Actual combat damage -> reduce by combat skill
+                XPWrapper combat = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.COMBAT);
+                event.ammount -= CombatSkill.damageReduction.getValue(combat.getLevel());
 
-                    if (Rand.evaluate(DivingSkill.AIR_RESTORE_CHANCE.getValue(diving.getLevel()))) {
-                        // restore air
-                        targetPlayer.setAir(300);
-                    }
-
-                    // now award xp for the remaining damage
-                    Optional<Integer> newLevel = diving.addXp((long) (DivingSkill.XP_PER_DAMAGE * event.ammount));
-                    MCMMO.playerLevelUp(targetPlayer, Skill.DIVING, newLevel);
-                } else if (event.source.damageType.equals("fall")) {
-                    // Fall damage -> parkour skill
-                    XPWrapper parkour = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.PARKOUR);
-
-
-                    int rollXp = 0; // The xp received from performing a roll
-
-                    // Sneaking is necessary to perform a roll
-                    if (targetPlayer.isSneaking()) {
-                        // Reduce suffered damage by performing a roll
-                        event.ammount -= event.ammount * ParkourSkill.PARKOUR_ROLL_DAMAGE_REDUCTION.getValue(parkour.getLevel());
-
-                        // Check whether player has performed a graceful roll
-                        if (Rand.evaluate(ParkourSkill.PERFECT_ROLL_CHANCE.getValue(parkour.getLevel()))) {
-                            // Apply speed potion effect
-                            targetPlayer.addPotionEffect(new PotionEffect(Potion.moveSpeed.getId(), ParkourSkill.SPEED_BOOST_DURATION *  XPWrapper.TICKS_PER_SECOND, 1, true));
-                            event.ammount = 0;
-                            rollXp = ParkourSkill.PERFECT_ROLL_XP;
-                        } else {
-                            rollXp = ParkourSkill.ROLL_XP;
-                        }
-
-                        // This comes very close to a landing sound
-                        Sound.HORSE_LAND.playAt(targetPlayer);
-                    }
-
-                    // award player xp for suffered fall damage and performed rolls
-                    Optional<Integer> newLevel = parkour.addXp((long) (ParkourSkill.XP_PER_DAMAGE * event.ammount + rollXp));
-                    MCMMO.playerLevelUp(targetPlayer, Skill.PARKOUR, newLevel);
-                } else if (event.source.getHungerDamage() == 0f && !event.source.damageType.equals("inWall")) {
-
-                    // Actual combat damage -> reduce by combat skill
-                    XPWrapper combat = MCMMO.getPlayerXp(targetPlayer).getSkillXp(Skill.COMBAT);
-                    event.ammount -= CombatSkill.damageReduction.getValue(combat.getLevel());
-
-                    // now award xp for the remaining damage
-                    Optional<Integer> newLevel = combat.addXp((long) (CombatSkill.XP_PER_DAMAGE * event.ammount));
-                    MCMMO.playerLevelUp(targetPlayer, Skill.COMBAT, newLevel);
-                }
+                // now award xp for the remaining damage
+                Optional<Integer> newLevel = combat.addXp((long) (CombatSkill.XP_PER_DAMAGE * event.ammount));
+                MCMMO.playerLevelUp(targetPlayer, Skill.COMBAT, newLevel);
             }
 
             // After we have reduced the damage by the target player's combat skill, we can convert the remaining dealt damage
@@ -325,7 +312,12 @@ public class AttackListener {
 
     private void rewardXpByTargetDamage(LivingHurtEvent event, EntityPlayerMP sourcePlayer, XPWrapper skillXp) {
         // Use a constant Damage -> XP conversion for all combat skills
-        final int XP_PER_DAMAGE = 50;
+        int XP_PER_DAMAGE = 50;
+
+        if (skillXp.getSkill() == Skill.UNARMED) {
+            // Unarmed skill is way too hard to level if the xp reward isn't increased.
+            XP_PER_DAMAGE *= 2;
+        }
 
         // Only reward xp for damaging potentially dangerous entities
         if (!Entities.isPeacefulTowards(event.entity, sourcePlayer)) {
