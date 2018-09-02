@@ -52,16 +52,16 @@ public class AxesSkill implements IAbilitySkill {
 
         chat.writeMessage(ChatFormat.formatCaption("EFFECTS"));
         chat.writeMessage(ChatFormat.formatEffect("Critical strikes", ""));
-        chat.writeMessage(" You get a chance to twice the damage. The chance increases by " + ChatFormat.formatPercent(criticalChance.incrementPerLevel) +
+        chat.writeMessage(" You get a chance to deal twice the damage. The chance increases by " + ChatFormat.formatPercent(criticalChance.incrementPerLevel) +
                 " per level up to " + ChatFormat.formatPercent(criticalChance.maxValue));
 
         chat.writeMessage(ChatFormat.formatEffect("Axe Mastery", "", axeMasterDamage.startLevel));
         chat.writeMessage(" Increases the base axe damage by " + axeMasterDamage.startValue + " at level " + axeMasterDamage.startLevel +
-                " and by " + axeMasterDamage.incrementLevelStep + " every " + axeMasterDamage.incrementLevelStep + " level.");
+                " and by " + axeMasterDamage.incrementValue + " every " + axeMasterDamage.incrementLevelStep + " levels.");
 
         chat.writeMessage(ChatFormat.formatEffect("Armor Impact", "", armorImpactDamage.startLevel));
         chat.writeMessage(" The blunt force of the axe puts extra strain on the enemy armor and destroys it faster than anything else."+
-            " The axe deals " + armorImpactDamage.startValue + " additional armoe damage at level " + armorImpactDamage.startLevel +
+            " The axe deals " + armorImpactDamage.startValue + " additional armor damage at level " + armorImpactDamage.startLevel +
             " and increases by " + armorImpactDamage.incrementValue + " every " + armorImpactDamage.incrementLevelStep + " levels.");
     }
 
