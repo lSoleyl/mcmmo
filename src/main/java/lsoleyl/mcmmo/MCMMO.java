@@ -61,31 +61,26 @@ public class MCMMO
 
     
     @EventHandler
-    public void init(FMLInitializationEvent event)
-    {
+    public void init(FMLInitializationEvent event) {
         instance = this;
-
-        System.out.println("---INIT----");
-        if (FMLCommonHandler.instance().getSide().isClient()) {
-            // This is a server only mod, so we won't do any initialization on the client side
-            return;
-        }
-
-        // Load saved data (if any)
-        dataStorage = DataStorage.Initialize();
-
-        // register event listeners
-        MinecraftForge.EVENT_BUS.register(new BlockListener());
-        MinecraftForge.EVENT_BUS.register(new AttackListener());
-        MinecraftForge.EVENT_BUS.register(new AbilityListener());
-
-        FMLCommonHandler.instance().bus().register(new TickListener());
+        // We cannot really initialize anything here as we don't yet know the logical side we are running on. (SP)
     }
 
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         System.out.println("--- ServerStarting ---");
-        if (FMLCommonHandler.instance().getSide().isServer()) {
+        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
+            // Load saved data (if any)
+            dataStorage = DataStorage.Initialize();
+
+            // register event listeners
+            MinecraftForge.EVENT_BUS.register(new BlockListener());
+            MinecraftForge.EVENT_BUS.register(new AttackListener());
+            MinecraftForge.EVENT_BUS.register(new AbilityListener());
+
+            FMLCommonHandler.instance().bus().register(new TickListener());
+
+            // Register command
             event.registerServerCommand(new MCMMOCommand());
 
             // Make sure, each skill is registered
