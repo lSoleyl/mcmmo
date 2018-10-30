@@ -1,5 +1,6 @@
 package lsoleyl.mcmmo.events;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import lsoleyl.mcmmo.MCMMO;
@@ -18,6 +19,10 @@ public class TickListener {
 
     @SubscribeEvent
     public void onTick(TickEvent.ServerTickEvent event) {
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            // In SP this listener gets called by the client side logic aswell
+            return;
+        }
 
         if (event.phase == TickEvent.Phase.END) {
             // Simply count up the ticks... as needed for several cooldown calculations

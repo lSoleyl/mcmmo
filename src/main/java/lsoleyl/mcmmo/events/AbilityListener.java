@@ -1,5 +1,6 @@
 package lsoleyl.mcmmo.events;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.experience.XPWrapper;
@@ -17,6 +18,11 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 public class AbilityListener {
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            // In SP this listener gets called by the client side logic aswell
+            return;
+        }
+
         // this sadly doesn't get fired if the user has no item in hand and right clicks into the air, so
         // we have to resort to shift-right click for this action... this should be unproblematic, as shift
         // right click is mostly used with items

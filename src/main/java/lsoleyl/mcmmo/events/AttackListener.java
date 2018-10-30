@@ -1,5 +1,6 @@
 package lsoleyl.mcmmo.events;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import lsoleyl.mcmmo.MCMMO;
 import lsoleyl.mcmmo.experience.XPWrapper;
@@ -19,6 +20,11 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 public class AttackListener {
     @SubscribeEvent
     public void onAttack(LivingAttackEvent event) {
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            // In SP this listener gets called by the client side logic aswell
+            return;
+        }
+
         EntityPlayerMP targetPlayer = null;
         if (event.entity instanceof EntityPlayerMP) {
             targetPlayer = (EntityPlayerMP) event.entity;
