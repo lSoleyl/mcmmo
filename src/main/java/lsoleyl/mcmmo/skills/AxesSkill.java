@@ -28,6 +28,7 @@ public class AxesSkill implements IAbilitySkill {
         chat.writeMessage(ChatFormat.formatEffect("Armor Impact", "Directly damage armor", armorImpactDamage.startLevel));
 
         chat.writeMessage(ChatFormat.formatCaption("YOUR STATS"));
+        chat.writeMessage(ChatFormat.formatEffectValue("Skull spliter duration", skullSplitterDuration.getValue(level) + "s"));
         chat.writeMessage(ChatFormat.formatEffectValue("Critical chance", ChatFormat.formatPercent(criticalChance.getValue(level))));
         if (level >= axeMasterDamage.startLevel) {
             chat.writeMessage(ChatFormat.formatEffectValue("Additional axe damage", axeMasterDamage.getValue(level) + ""));
