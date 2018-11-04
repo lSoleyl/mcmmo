@@ -97,7 +97,7 @@ class TinkerTools implements ToolClassifier {
     TinkerTools() {
         // Initialize the Swords and Axes class sets
         String[] swordNames = {"Broadsword", "Longsword", "Rapier", "Dagger"};
-        String[] axeNames = {"Mattock", "LumberAxe", "Scythe", "Cleaver", "Battleaxe"};
+        String[] axeNames = {"Mattock", "LumberAxe", "Scythe", "Cleaver", "Battleaxe", "Hatchet"};
 
         swordSet = new HashSet<String>();
         axeSet = new HashSet<String>();
