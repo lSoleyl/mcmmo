@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import lsoleyl.mcmmo.config.ConfigFile;
 import lsoleyl.mcmmo.utility.Optional;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.common.MinecraftForge;
@@ -111,10 +112,14 @@ public class DataStorage {
 
     @SubscribeEvent
     public void onWorldSaved(WorldEvent.Save event) {
-        //TODO how do I only save once and not thrice? The dimension-check doesn't work.
+        //TODO how do I only save once and not once per dimension? The dimension-check doesn't work.
+        //TODO I added a config option for this for now to not spam the console, but this isn't an actual solution!
+
+        if (ConfigFile.getInstance().printSaveMessage) {
+            System.out.println("Saving MCMMO data");
+        }
 
         // Save the player data using GSON
-        System.out.println("Saving MCMMO data");
         Gson gson = new Gson();
         FileWriter writer = null;
         try {

@@ -1,5 +1,7 @@
 package lsoleyl.mcmmo.experience;
 
+import lsoleyl.mcmmo.config.ConfigFile;
+
 import static java.lang.Math.sqrt;
 
 /** This class defines the progression curve and some methods to convert between xp and level.
@@ -18,10 +20,10 @@ import static java.lang.Math.sqrt;
  *  with z = (base+(slope/2))/sqrt(2*slope)
 */
 public class Progression {
-    private static final Progression instance = new Progression();
+    private static Progression instance;
 
-    public final long base = 1000;
-    public final long slope = 20; // must be dividable by 2 for the calculations to work correctly
+    private final long base; // = 1000;
+    private final long slope; // = 20; // must be dividable by 2 for the calculations to work correctly
     private final double z; // must be a double to correctly calculate the value.
     private final double z2;
     private final long halfSlope; // this is used frequently, so precalculate it
@@ -30,6 +32,9 @@ public class Progression {
     /** Precalculate a few values
      */
     private Progression() {
+        base = ConfigFile.getInstance().progressBase;
+        slope = ConfigFile.getInstance().progressSlope;
+
         z = (base+slope)/sqrt(2.0 * slope);
         z2 = z*z;
         halfSlope = slope / 2;
@@ -37,6 +42,9 @@ public class Progression {
     }
 
     public static Progression getInstance() {
+        if (instance == null) {
+            instance = new Progression();
+        }
         return instance;
     }
 

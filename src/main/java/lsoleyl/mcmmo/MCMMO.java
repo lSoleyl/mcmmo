@@ -4,8 +4,10 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import lsoleyl.mcmmo.commands.MCMMOCommand;
+import lsoleyl.mcmmo.config.ConfigFile;
 import lsoleyl.mcmmo.data.DataStorage;
 import lsoleyl.mcmmo.data.PlayerXp;
 import lsoleyl.mcmmo.events.AbilityListener;
@@ -21,6 +23,7 @@ import lsoleyl.mcmmo.utility.Sound;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Configuration;
 
 import java.util.Set;
 
@@ -59,11 +62,12 @@ public class MCMMO
         }
     }
 
-    
     @EventHandler
-    public void init(FMLInitializationEvent event) {
+    public void preInit(FMLPreInitializationEvent event) {
         instance = this;
-        // We cannot really initialize anything here as we don't yet know the logical side we are running on. (SP)
+
+        // Load configuration
+        ConfigFile.initialize(new Configuration(event.getSuggestedConfigurationFile()));
     }
 
     @EventHandler
