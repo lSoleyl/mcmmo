@@ -6,6 +6,7 @@ import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.passive.IAnimals;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.AxisAlignedBB;
 
 import java.util.List;
@@ -30,6 +31,20 @@ public class Entities {
         }
 
         return false; // all unknown entities are harmful
+    }
+
+    /** Casts the given Entity into EntityPlayerMP if the entity is actually a player, not null and
+     *  not a ComputerCraft turtle (which should not be affected by MCMMO).
+     *
+     * @param entity the entity to convert into a player
+     * @return either the player entity or null if it isn't a player
+     */
+    public static EntityPlayerMP getPlayer(Entity entity) {
+        if (entity != null && entity instanceof EntityPlayerMP && !entity.getClass().getSimpleName().equals("TurtlePlayer")) {
+            return (EntityPlayerMP) entity;
+        }
+
+        return null;
     }
 
     /** Knocks back the entity from the source away... This doesn't work with players as their movements are calculated

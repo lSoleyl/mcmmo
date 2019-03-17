@@ -9,6 +9,7 @@ import lsoleyl.mcmmo.skills.Skill;
 import lsoleyl.mcmmo.skills.SkillRegistry;
 import lsoleyl.mcmmo.utility.ChatFormat;
 import lsoleyl.mcmmo.utility.ChatWriter;
+import lsoleyl.mcmmo.utility.Entities;
 import lsoleyl.mcmmo.utility.Tools;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -23,12 +24,17 @@ public class AbilityListener {
             return;
         }
 
+        // Make sure we apply this to a real player, not to a turtle
+        final EntityPlayerMP player = Entities.getPlayer(event.entityPlayer);
+        if (player == null) {
+            return;
+        }
+
         // this sadly doesn't get fired if the user has no item in hand and right clicks into the air, so
         // we have to resort to shift-right click for this action... this should be unproblematic, as shift
         // right click is mostly used with items
-        if (event.entityPlayer.getHeldItem() == null) {
-            if (event.entityPlayer.isSneaking()) {
-                EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;
+        if (player.getHeldItem() == null) {
+            if (player.isSneaking()) {
                 XPWrapper unarmed = MCMMO.getPlayerXp(player).getSkillXp(Skill.UNARMED);
                 if (unarmed.isAbilityPrepared()) {
                     unarmed.cancelPrepare();  // lower arms
@@ -46,10 +52,9 @@ public class AbilityListener {
             // click in the air. But if we don't ignore the block right click then we would receive two events and directly
             // cancel the prepare.
 
-            if (Tools.isAxe(event.entityPlayer.getHeldItem())) {
+            if (Tools.isAxe(player.getHeldItem())) {
                 // Skull splitter
-                if (event.entityPlayer.isSneaking()) {
-                    EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;
+                if (player.isSneaking()) {
                     XPWrapper axes = MCMMO.getPlayerXp(player).getSkillXp(Skill.AXES);
                     if (axes.isAbilityPrepared()) {
                         axes.cancelPrepare();  // lower axe
@@ -62,10 +67,9 @@ public class AbilityListener {
                         }
                     }
                 }
-            } else if (Tools.isSword(event.entityPlayer.getHeldItem())) {
+            } else if (Tools.isSword(player.getHeldItem())) {
                 // Clean cutter
-                if (event.entityPlayer.isSneaking()) {
-                    EntityPlayerMP player = (EntityPlayerMP) event.entityPlayer;
+                if (player.isSneaking()) {
                     XPWrapper swords = MCMMO.getPlayerXp(player).getSkillXp(Skill.SWORDS);
                     if (swords.isAbilityPrepared()) {
                         swords.cancelPrepare();  // lower sword

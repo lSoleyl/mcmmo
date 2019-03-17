@@ -25,15 +25,8 @@ public class AttackListener {
             return;
         }
 
-        EntityPlayerMP targetPlayer = null;
-        if (event.entity instanceof EntityPlayerMP) {
-            targetPlayer = (EntityPlayerMP) event.entity;
-        }
-
-        EntityPlayerMP sourcePlayer = null;
-        if (event.source.getEntity() != null && event.source.getEntity() instanceof EntityPlayerMP) {
-            sourcePlayer = (EntityPlayerMP) event.source.getEntity();
-        }
+        EntityPlayerMP targetPlayer = Entities.getPlayer(event.entity);
+        EntityPlayerMP sourcePlayer = Entities.getPlayer(event.source.getEntity());
 
         if (targetPlayer != null) {
             DamageClassifier damage = DamageClassifier.classify(event.source);
@@ -122,15 +115,8 @@ public class AttackListener {
             return;
         }
 
-        EntityPlayerMP targetPlayer = null;
-        if (event.entity instanceof EntityPlayerMP) {
-            targetPlayer = (EntityPlayerMP) event.entity;
-        }
-
-        EntityPlayerMP sourcePlayer = null;
-        if (event.source.getEntity() != null && event.source.getEntity() instanceof EntityPlayerMP) {
-            sourcePlayer = (EntityPlayerMP) event.source.getEntity();
-        }
+        EntityPlayerMP targetPlayer = Entities.getPlayer(event.entity);
+        EntityPlayerMP sourcePlayer = Entities.getPlayer(event.source.getEntity());
 
         // This is set to the source player's skill xp wrapper if the attack is a regular close combat attack
         // to award him for the remaining damage dealt AFTER the target player's combat skill has been evaluated and
